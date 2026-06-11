@@ -29,42 +29,44 @@ const Header = () => {
   };
 
   const toggleTheme = () => {
-    setIsDark(!isDark);
+  setIsDark(prev => {
+    const goingLight = prev;
+    const r = document.documentElement;
 
-    document.documentElement.style.setProperty(
-      "--bg-main",
-      isDark ? "#ffffff" : "#0d1117"
-    );
+    if (goingLight) {
+      // Switch to Light
+      r.style.setProperty('--bg-main', '#f6f8fa');
+      r.style.setProperty('--bg-card', '#ffffff');
+      r.style.setProperty('--bg-card-hover', '#f0f2f5');
+      r.style.setProperty('--bg-input', '#f0f2f5');
+      r.style.setProperty('--bg-tag', '#e2e8f0');
+      r.style.setProperty('--border', 'rgba(0,0,0,0.1)');
+      r.style.setProperty('--border-input', 'rgba(0,0,0,0.15)');
+      r.style.setProperty('--border-hover', 'rgba(88,166,255,0.5)');
+      r.style.setProperty('--text-primary', '#0f172a');
+      r.style.setProperty('--text-secondary', '#475569');
+      r.style.setProperty('--text-muted', '#94a3b8');
+    } else {
+      // Switch to Dark
+      r.style.setProperty('--bg-main', '#0d1117');
+      r.style.setProperty('--bg-card', '#161b22');
+      r.style.setProperty('--bg-card-hover', '#1c2230');
+      r.style.setProperty('--bg-input', '#0d1117');
+      r.style.setProperty('--bg-tag', '#1e2a3a');
+      r.style.setProperty('--border', 'rgba(48,64,88,0.8)');
+      r.style.setProperty('--border-input', 'rgba(48,64,88,0.9)');
+      r.style.setProperty('--border-hover', 'rgba(96,165,250,0.4)');
+      r.style.setProperty('--text-primary', '#e6edf3');
+      r.style.setProperty('--text-secondary', '#8b949e');
+      r.style.setProperty('--text-muted', '#6e7681');
+    }
 
-    document.documentElement.style.setProperty(
-      "--bg-card",
-      isDark ? "#f6f8fa" : "#161b22"
-    );
-
-    document.documentElement.style.setProperty(
-      "--bg-input",
-      isDark ? "#f0f2f5" : "#0d1117"
-    );
-
-    document.documentElement.style.setProperty(
-      "--text-primary",
-      isDark ? "#1a1a1a" : "#e6edf3"
-    );
-
-    document.documentElement.style.setProperty(
-      "--text-secondary",
-      isDark ? "#555" : "#8b949e"
-    );
-
-    document.documentElement.style.setProperty(
-      "--text-muted",
-      isDark ? "#888" : "#6e7681"
-    );
-  };
-
+    return !prev;
+  });
+};
   return (
     <>
-      <header className="header-wrapper">
+      <header className="taskflow-header mb-0">
         <Container>
 
           <div className="header-content">
@@ -72,9 +74,10 @@ const Header = () => {
             {/* LEFT - USER INFO */}
             <div
               className="header-user"
-              onClick={() =>
-                setDropdownOpen(!dropdownOpen)
-              }
+              onClick={(e) => {
+                e.stopPropagation();
+                setDropdownOpen(prev => !prev);
+              }}
             >
               <div className="user-avatar-small">
                 {userInfo?.name

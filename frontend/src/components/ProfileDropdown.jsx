@@ -11,7 +11,6 @@ const ProfileDropdown = ({
   handleLogout,
 }) => {
   const dropdownRef = useRef(null);
-
   useEffect(() => {
     const handler = (e) => {
       if (
@@ -21,45 +20,71 @@ const ProfileDropdown = ({
         setDropdownOpen(false);
       }
     };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [setDropdownOpen]);
 
-  if (!dropdownOpen) return null;
+    if (dropdownOpen) {
+      document.addEventListener("mousedown", handler);
+    }
+
+    return () => {
+      document.removeEventListener(
+        "mousedown",
+        handler
+      );
+    };
+  }, [dropdownOpen,setDropdownOpen]);
 
   return (
-    <div ref={dropdownRef} className="profile-dropdown">
-
-      {/* ── Profile Card ── */}
+    <div
+      ref={dropdownRef}
+      className={`profile-dropdown ${
+        dropdownOpen ? "show" : ""
+      }`}
+      onClick={(e) => e.stopPropagation()}
+    >
+      {/* Profile Card */}
       <div className="profile-card">
         <div className="profile-avatar">
           {userInfo?.name
             ? userInfo.name.charAt(0).toUpperCase()
             : "?"}
         </div>
+
         <div className="profile-name">
           {userInfo?.name || "User"}
         </div>
+
         <div className="profile-email">
           {userInfo?.email || ""}
         </div>
       </div>
 
-      {/* ── Menu Items ── */}
+      {/* Menu */}
       <div className="dropdown-menu-content">
 
-        {/* Theme Toggle */}
+        {/* Theme */}
         <button
           className="dropdown-item-btn"
           onClick={toggleTheme}
         >
           <i
-            className={`bi ${isDark ? "bi-sun-fill" : "bi-moon-fill"}`}
-            style={{ color: isDark ? "#f59e0b" : "var(--blue)" }}
+            className={`bi ${
+              isDark
+                ? "bi-sun-fill"
+                : "bi-moon-fill"
+            }`}
+            style={{
+              color: isDark
+                ? "#f59e0b"
+                : "var(--blue)",
+            }}
           />
+
           <span>
-            {isDark ? "Switch to Light" : "Switch to Dark"}
+            {isDark
+              ? "Switch to Light"
+              : "Switch to Dark"}
           </span>
+
           <span className="theme-badge">
             {isDark ? "Dark" : "Light"}
           </span>
@@ -73,33 +98,30 @@ const ProfileDropdown = ({
             setSettingsOpen(true);
           }}
         >
-          <i
-            className="bi bi-gear"
-            style={{ color: "var(--text-muted)" }}
-          />
+          <i className="bi bi-gear"></i>
+
           <span>Settings</span>
+
           <i
             className="bi bi-chevron-right"
             style={{
               marginLeft: "auto",
               fontSize: "0.75rem",
-              color: "var(--text-muted)"
             }}
           />
         </button>
 
-        {/* Divider */}
-        <div className="dropdown-divider" />
+        <div className="dropdown-divider"></div>
 
         {/* Logout */}
         <button
           className="dropdown-item-btn logout"
           onClick={handleLogout}
         >
-          <i className="bi bi-box-arrow-right" />
+          <i className="bi bi-box-arrow-right"></i>
+
           <span>Logout</span>
         </button>
-
       </div>
     </div>
   );

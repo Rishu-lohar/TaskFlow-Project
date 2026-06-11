@@ -89,3 +89,14 @@
   color:var(--text-muted);
   font-size:.75rem;
 }
+
+/* Sticky header */
+.taskflow-header {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 0;
+  backdrop-filter: blur(12px);
+}

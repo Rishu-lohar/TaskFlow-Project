@@ -57,7 +57,7 @@ header {
   padding: 32px 36px;
   margin-bottom: 32px;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
 }
 
 header::after {
@@ -112,6 +112,7 @@ header p {
 .card:hover {
   border-color: var(--border-hover);
   background: var(--bg-card-hover);
+  transform: translateY(-3px);
 }
 
 .card-header {

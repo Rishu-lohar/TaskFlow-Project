@@ -1,21 +1,15 @@
 import React from "react";
-import { Card, Button } from "react-bootstrap";
+import { Card } from "react-bootstrap";
+import "../styles/tasklist.css";
 
-const TaskList = ({
-  tasks,
-  onDeleteTask,
-  onToggleTask,
-}) => {
+const TaskList = ({ tasks, onDeleteTask, onToggleTask }) => {
+
   const formatDate = (dateStr) => {
-    if (!dateStr) return "No deadline";
+    if (!dateStr) return null;
 
     const [y, m, d] = dateStr.split("-");
 
-    return new Date(
-      y,
-      m - 1,
-      d
-    ).toLocaleDateString("en-US", {
+    return new Date(y, m - 1, d).toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
     });
@@ -43,9 +37,7 @@ const TaskList = ({
 
         <Card.Body>
           <div className="empty-state">
-            <div className="empty-icon">
-              📭
-            </div>
+            <div className="empty-icon">📭</div>
 
             <p className="empty-text">
               No tasks yet. Add one above!
@@ -56,94 +48,157 @@ const TaskList = ({
     );
   }
 
+  // Pending first, completed last
+  const sortedTasks = [...tasks].sort((a, b) => {
+    if (a.completed === b.completed) return 0;
+    return a.completed ? 1 : -1;
+  });
+
   return (
     <Card>
+
+      {/* HEADER */}
       <Card.Header>
-        <Card.Title>
-          <i className="bi bi-list-check me-2"></i>
-          Your Tasks ({tasks.length})
-        </Card.Title>
+
+        <div className="task-header">
+
+          <Card.Title className="mb-0">
+            <i className="bi bi-list-check me-2"></i>
+            Your Tasks ({tasks.length})
+          </Card.Title>
+
+          <div className="task-summary">
+
+            <span className="summary-badge done-badge">
+              ✓ {tasks.filter((t) => t.completed).length} done
+            </span>
+
+            <span className="summary-badge pending-badge">
+              {tasks.filter((t) => !t.completed).length} pending
+            </span>
+
+          </div>
+
+        </div>
+
       </Card.Header>
 
+      {/* BODY */}
       <Card.Body>
-        {tasks.map((task) => {
+
+        {sortedTasks.map((task) => {
+
           const isOverdue =
             task.deadline &&
             !task.completed &&
             task.deadline < todayStr();
 
+          const formattedDate = formatDate(task.deadline);
+
           return (
+
             <div
               key={task.id}
               className={`task-item ${
-                task.completed
-                  ? "completed"
-                  : ""
+                task.completed ? "completed" : ""
               } ${
-                isOverdue
-                  ? "overdue"
-                  : ""
+                isOverdue ? "overdue" : ""
               }`}
             >
-              <div className="flex-grow-1">
-                <div className="d-flex align-items-center gap-2 mb-2">
-                  <input
-                    type="checkbox"
-                    className="checkbox-custom"
-                    checked={task.completed}
-                    onChange={() =>
-                      onToggleTask(task.id)
-                    }
-                  />
+
+              {/* LEFT */}
+              <div className="task-left">
+
+                <div className="task-title-row">
 
                   <span
                     className={`task-name ${
-                      task.completed
-                        ? "completed"
-                        : ""
+                      task.completed ? "completed" : ""
                     }`}
                   >
                     {task.title}
                   </span>
+
                 </div>
 
                 <div className="task-meta">
+
                   <span
                     className={`badge badge-${task.priority.toLowerCase()}`}
                   >
                     {task.priority}
                   </span>
 
-                  <span>
-                    <i className="bi bi-calendar3 me-1"></i>
+                  {formattedDate && (
+                    <span>
+                      <i className="bi bi-calendar3 me-1"></i>
 
-                    {formatDate(
-                      task.deadline
-                    )}
+                      {formattedDate}
 
-                    {isOverdue && (
-                      <span className="text-danger ms-1">
-                        ⚠️ Overdue
-                      </span>
-                    )}
-                  </span>
+                      {isOverdue && (
+                        <span className="overdue-text">
+                          ⚠ Overdue
+                        </span>
+                      )}
+                    </span>
+                  )}
+
+                  {task.completed && (
+                    <span className="completed-text">
+                      ✓ Completed
+                    </span>
+                  )}
+
                 </div>
+
               </div>
 
-              <Button
-                variant="danger"
-                size="sm"
-                className="ms-2"
-                onClick={() =>
-                  onDeleteTask(task.id)
-                }
-              >
-                <i className="bi bi-trash"></i>
-              </Button>
+              {/* RIGHT */}
+              <div className="task-actions">
+
+                {/* COMPLETE */}
+                <button
+                  onClick={() => onToggleTask(task.id)}
+                  title={
+                    task.completed
+                      ? "Mark as pending"
+                      : "Mark as complete"
+                  }
+                  className={`icon-btn complete-btn ${
+                    task.completed ? "completed" : ""
+                  }`}
+                >
+
+                  <i
+                    className={`bi ${
+                      task.completed
+                        ? "bi-arrow-counterclockwise"
+                        : "bi-check-lg"
+                    }`}
+                  />
+
+                </button>
+
+                {/* DELETE */}
+                <button
+                  onClick={() => onDeleteTask(task.id)}
+                  title="Delete Task"
+                  className="icon-btn delete-btn"
+                >
+
+                  <i className="bi bi-trash"></i>
+
+                </button>
+
+              </div>
+
             </div>
+
           );
         })}
+
       </Card.Body>
+
     </Card>
   );
 };

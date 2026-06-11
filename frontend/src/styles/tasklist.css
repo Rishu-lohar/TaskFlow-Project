@@ -1,0 +1,100 @@
+/* Header */
+
+.task-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+
+.task-summary{
+  display:flex;
+  gap:8px;
+}
+
+.summary-badge{
+  font-size:.75rem;
+  font-weight:600;
+  padding:3px 10px;
+  border-radius:20px;
+}
+
+.done-badge{
+  background:var(--green-dim);
+  border:1px solid rgba(63,185,80,.25);
+  color:var(--green);
+}
+
+.pending-badge{
+  background:var(--blue-dim);
+  border:1px solid rgba(88,166,255,.25);
+  color:var(--blue);
+}
+
+/* Task Item */
+
+.task-left{
+  flex:1;
+  min-width:0;
+}
+
+.task-title-row{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:8px;
+}
+
+.task-name{
+  word-break:break-word;
+}
+
+.task-actions{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-shrink:0;
+  margin-left:12px;
+}
+
+/* Buttons */
+
+.icon-btn{
+  width:34px;
+  height:34px;
+  border-radius:8px;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transition:.2s ease;
+}
+
+.complete-btn{
+  border:1px solid var(--border);
+  background:var(--bg-input);
+  color:var(--text-muted);
+}
+
+.complete-btn.completed{
+  border:1px solid rgba(63,185,80,.4);
+  background:var(--green-dim);
+  color:var(--green);
+}
+
+.delete-btn{
+  border:1px solid rgba(248,81,73,.3);
+  background:var(--red-dim);
+  color:var(--red);
+}
+
+.overdue-text{
+  color:var(--red);
+  margin-left:4px;
+  font-size:.75rem;
+}
+
+.completed-text{
+  color:var(--green);
+  font-size:.75rem;
+  font-weight:600;
+}

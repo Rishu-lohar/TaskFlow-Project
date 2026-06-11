@@ -62,31 +62,33 @@ function Home() {
   return (
     <div className="app">
       <Header />
+       <div style={{ padding: '28px 24px' }}>
 
-      <Container fluid>
-        <div className="main-layout">
+          <Container fluid>
+            <div className="main-layout">
 
-          <div className="left-panel">
-            <TaskForm onAddTask={addTask} />
-            <Dashboard tasks={tasks} />
-            <TaskList
-              tasks={tasks}
-              onDeleteTask={deleteTask}
-              onToggleTask={toggleTask}
-            />
-          </div>
+              <div className="left-panel">
+                <TaskForm onAddTask={addTask} />
+                <Dashboard tasks={tasks} />
+                <TaskList
+                  tasks={tasks}
+                  onDeleteTask={deleteTask}
+                  onToggleTask={toggleTask}
+                />
+              </div>
 
-          <div className="right-panel">
-            <Calendar
-              tasks={tasks}
-              currentDate={currentDate}
-              onDateChange={setCurrentDate}
-            />
-            <Insights tasks={tasks} />
-          </div>
+              <div className="right-panel">
+                <Calendar
+                  tasks={tasks}
+                  currentDate={currentDate}
+                  onDateChange={setCurrentDate}
+                />
+                <Insights tasks={tasks} />
+              </div>
 
+            </div>
+          </Container>
         </div>
-      </Container>
     </div>
   );
 }
