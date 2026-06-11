@@ -1,0 +1,97 @@
+.settings-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.6);
+  z-index: 99999;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.settings-modal {
+  width: 100%;
+  max-width: 500px;
+
+  background: var(--bg-card);
+
+  border: 1px solid var(--border);
+
+  border-radius: 18px;
+
+  overflow: hidden;
+}
+
+.settings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 20px;
+
+  border-bottom: 1px solid var(--border);
+}
+
+.settings-header button {
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+}
+
+.settings-body {
+  padding: 24px;
+}
+
+.settings-section {
+  margin-bottom: 30px;
+}
+
+.settings-section h6 {
+  margin-bottom: 15px;
+  color: var(--text-muted);
+}
+
+.pw-message {
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+.pw-message.success {
+  background: rgba(63,185,80,.15);
+  color: #3fb950;
+}
+
+.pw-message.error {
+  background: rgba(248,81,73,.15);
+  color: #f85149;
+}
+
+.danger-btn-outline {
+  width: 100%;
+  margin-bottom: 10px;
+
+  border: 1px solid #f85149;
+
+  background: transparent;
+
+  color: #f85149;
+
+  padding: 10px;
+
+  border-radius: 10px;
+}
+
+.danger-btn {
+  width: 100%;
+
+  border: none;
+
+  background: #f85149;
+
+  color: white;
+
+  padding: 10px;
+
+  border-radius: 10px;
+}

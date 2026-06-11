@@ -649,3 +649,99 @@ header p {
     font-size: 1.5rem !important;
   }
 }
+
+/* ============ AUTH PAGES ============ */
+.auth-page{
+  min-height: 100vh;
+  background: var(--bg-main);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.auth-card{
+  width: 100%;
+  max-width: 420px;
+}
+
+.auth-logo{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.auth-logo i{
+  font-size: 2rem;
+  color: var(--blue);
+}
+
+.auth-logo span{
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.5px;
+}
+
+.auth-title{
+  text-align: center;
+  color: var(--text-primary);
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.auth-subtitle{
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin-bottom: 20px;
+}
+
+.auth-divider{
+  text-align: center;
+  margin: 20px 0 14px;
+  position: relative;
+}
+
+.auth-divider::before{
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--border);
+}
+
+.auth-divider span{
+  background: var(--bg-card);
+  padding: 0 12px;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  position: relative;
+  z-index: 1;
+}
+
+.auth-link-btn{
+  display: block;
+  width: 100%;
+  text-align: center;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text-secondary) !important;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-decoration: none !important;
+  transition: all 0.2s ease;
+  background: transparent;
+}
+
+.auth-link-btn:hover{
+  border-color: var(--blue);
+  color: var(--blue) !important;
+  background: var(--blue-dim);
+}

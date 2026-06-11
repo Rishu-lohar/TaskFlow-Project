@@ -1,0 +1,158 @@
+/* ── Wrapper ── */
+.profile-dropdown-wrapper {
+  position: relative;
+}
+
+/* ── Avatar Button ── */
+.avatar-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--blue-dim);
+  border: 2px solid rgba(88, 166, 255, 0.3);
+  color: var(--blue);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar-btn:hover {
+  background: rgba(88, 166, 255, 0.2);
+  border-color: var(--blue);
+}
+
+.avatar-btn.active {
+  background: var(--blue);
+  color: #0d1117;
+  border-color: var(--blue);
+}
+
+/* ── Dropdown ──
+   KEY FIX: position fixed so it
+   escapes header overflow/border-radius
+*/
+.profile-dropdown {
+  position: fixed;
+  top: 100px;
+  left: 24px;
+  width: 260px;
+  z-index: 99999;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+  animation: dropIn 0.15s ease;
+}
+
+@keyframes dropIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Profile Card at top ── */
+.profile-card {
+  padding: 20px 16px 16px;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-input);
+}
+
+.profile-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--blue);
+  color: #0d1117;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 10px;
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+.profile-name {
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.profile-email {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
+/* ── Menu Items ── */
+.dropdown-menu-content {
+  padding: 8px;
+  background: var(--bg-card);
+}
+
+.dropdown-item-btn {
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.88rem;
+  font-family: inherit;
+  transition: all 0.15s ease;
+  text-align: left;
+}
+
+.dropdown-item-btn:hover {
+  background: var(--bg-input);
+  color: var(--text-primary);
+}
+
+.dropdown-item-btn i {
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+/* ── Divider ── */
+.dropdown-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 6px 8px;
+}
+
+/* ── Logout button ── */
+.dropdown-item-btn.logout {
+  color: var(--red);
+}
+
+.dropdown-item-btn.logout:hover {
+  background: var(--red-dim);
+  color: var(--red);
+}
+
+/* ── Theme badge ── */
+.theme-badge {
+  margin-left: auto;
+  background: var(--blue-dim);
+  border: 1px solid rgba(88, 166, 255, 0.25);
+  color: var(--blue);
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
