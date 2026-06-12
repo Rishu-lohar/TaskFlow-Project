@@ -99,3 +99,14 @@ export const loginUser = async (req, res) => {
 
   }
 };
+
+// delete account
+
+export const deleteAccount = async (req, res) => {
+  await User.findByIdAndDelete(req.user._id);
+
+  res.json({
+    success: true,
+    message: "Account deleted"
+  });
+};
