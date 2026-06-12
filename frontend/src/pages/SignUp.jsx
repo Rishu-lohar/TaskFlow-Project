@@ -3,30 +3,25 @@ import { Card, Form, Button } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
-
 function SignUp() {
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const submitHandler = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError("");
 
     try {
-      const { data } = await axios.post(
-        `${API_URL}/api/auth/register`,
-        { name, email, password }
-      );
-
+      const { data } = await axios.post("/api/auth/register", { name, email, password });
       localStorage.setItem("userInfo", JSON.stringify(data));
       navigate("/dashboard");
-
-    } catch (error) {
-      alert(error.response?.data?.message || "Registration Failed");
+    } catch (err) {
+      setError(err.response?.data?.message || "Registration failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -35,21 +30,22 @@ function SignUp() {
   return (
     <div className="auth-page">
       <div className="auth-card">
-
-        {/* Logo */}
         <div className="auth-logo">
           <i className="bi bi-check2-circle"></i>
           <span>TaskFlow</span>
         </div>
 
         <h2 className="auth-title">Create Account</h2>
-        <p className="auth-subtitle">
-          Start managing your tasks smarter
-        </p>
+        <p className="auth-subtitle">Start managing your tasks smarter</p>
 
         <Card>
           <Card.Body>
             <Form onSubmit={submitHandler}>
+              {error && (
+                <div className="auth-error">
+                  <i className="bi bi-exclamation-circle me-2"></i>{error}
+                </div>
+              )}
 
               <Form.Group className="mb-3">
                 <Form.Label>Full Name</Form.Label>
@@ -77,38 +73,26 @@ function SignUp() {
                 <Form.Label>Password</Form.Label>
                 <Form.Control
                   type="password"
-                  placeholder="Create a password"
+                  placeholder="Create a password (min 6 chars)"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  minLength={6}
                 />
               </Form.Group>
 
-              <Button
-                type="submit"
-                variant="primary"
-                className="w-100"
-                disabled={loading}
-              >
+              <Button type="submit" variant="primary" className="w-100" disabled={loading}>
                 {loading
                   ? <><i className="bi bi-arrow-clockwise me-2"></i>Creating...</>
                   : <><i className="bi bi-person-plus me-2"></i>Create Account</>
                 }
               </Button>
-
             </Form>
 
-            <div className="auth-divider">
-              <span>Already have an account?</span>
-            </div>
-
-            <Link to="/login" className="auth-link-btn">
-              Login to TaskFlow
-            </Link>
-
+            <div className="auth-divider"><span>Already have an account?</span></div>
+            <Link to="/login" className="auth-link-btn">Login to TaskFlow</Link>
           </Card.Body>
         </Card>
-
       </div>
     </div>
   );

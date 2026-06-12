@@ -3,29 +3,24 @@ import { Card, Form, Button } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
-
 function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const submitHandler = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError("");
 
     try {
-      const { data } = await axios.post(
-        `${API_URL}/api/auth/login`,
-        { email, password }
-      );
-
+      const { data } = await axios.post("/api/auth/login", { email, password });
       localStorage.setItem("userInfo", JSON.stringify(data));
       navigate("/dashboard");
-
-    } catch (error) {
-      alert(error.response?.data?.message || "Login Failed");
+    } catch (err) {
+      setError(err.response?.data?.message || "Login failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -34,21 +29,22 @@ function Login() {
   return (
     <div className="auth-page">
       <div className="auth-card">
-
-        {/* Logo */}
         <div className="auth-logo">
           <i className="bi bi-check2-circle"></i>
           <span>TaskFlow</span>
         </div>
 
         <h2 className="auth-title">Welcome Back</h2>
-        <p className="auth-subtitle">
-          Login to continue managing your tasks
-        </p>
+        <p className="auth-subtitle">Login to continue managing your tasks</p>
 
         <Card>
           <Card.Body>
             <Form onSubmit={submitHandler}>
+              {error && (
+                <div className="auth-error">
+                  <i className="bi bi-exclamation-circle me-2"></i>{error}
+                </div>
+              )}
 
               <Form.Group className="mb-3">
                 <Form.Label>Email Address</Form.Label>
@@ -72,31 +68,18 @@ function Login() {
                 />
               </Form.Group>
 
-              <Button
-                type="submit"
-                variant="primary"
-                className="w-100"
-                disabled={loading}
-              >
+              <Button type="submit" variant="primary" className="w-100" disabled={loading}>
                 {loading
                   ? <><i className="bi bi-arrow-clockwise me-2"></i>Logging in...</>
                   : <><i className="bi bi-box-arrow-in-right me-2"></i>Login</>
                 }
               </Button>
-
             </Form>
 
-            <div className="auth-divider">
-              <span>Don't have an account?</span>
-            </div>
-
-            <Link to="/signup" className="auth-link-btn">
-              Create a new account
-            </Link>
-
+            <div className="auth-divider"><span>Don't have an account?</span></div>
+            <Link to="/signup" className="auth-link-btn">Create a new account</Link>
           </Card.Body>
         </Card>
-
       </div>
     </div>
   );

@@ -1,13 +1,19 @@
 import React from 'react';
 import { Card } from 'react-bootstrap';
 
+const toDateStr = (d) => d ? d.split('T')[0] : null;
+
 const Insights = ({ tasks }) => {
   const todayStr = () => {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
   };
 
-  const overdue = tasks.filter(t => t.deadline && !t.completed && t.deadline < todayStr());
+  const overdue = tasks.filter(t => {
+    const ds = toDateStr(t.deadline);
+    return ds && !t.completed && ds < todayStr();
+  });
+
   const total = tasks.length;
   const done = tasks.filter(t => t.completed).length;
   const rate = total > 0 ? Math.round((done / total) * 100) : 0;
@@ -47,7 +53,7 @@ const Insights = ({ tasks }) => {
               aria-valuenow={rate}
               aria-valuemin="0"
               aria-valuemax="100"
-            ></div>
+            />
           </div>
         </div>
       </Card.Body>

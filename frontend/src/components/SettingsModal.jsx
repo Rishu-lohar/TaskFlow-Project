@@ -3,8 +3,6 @@ import { Form, Button } from "react-bootstrap";
 import axios from "axios";
 import "../styles/settings.css";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
-
 const SettingsModal = ({ settingsOpen, setSettingsOpen, userInfo, onTasksCleared }) => {
   const [activeSection, setActiveSection] = useState(null);
   const [currentPassword, setCurrentPassword] = useState("");
@@ -12,6 +10,7 @@ const SettingsModal = ({ settingsOpen, setSettingsOpen, userInfo, onTasksCleared
   const [confirmPassword, setConfirmPassword] = useState("");
   const [pwLoading, setPwLoading] = useState(false);
   const [pwMsg, setPwMsg] = useState({ text: "", type: "" });
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const token = userInfo?.token;
   const authHeader = { headers: { Authorization: `Bearer ${token}` } };
@@ -40,11 +39,7 @@ const SettingsModal = ({ settingsOpen, setSettingsOpen, userInfo, onTasksCleared
 
     setPwLoading(true);
     try {
-      await axios.put(
-        `${API_URL}/api/auth/change-password`,
-        { currentPassword, newPassword },
-        authHeader
-      );
+      await axios.put("/api/auth/change-password", { currentPassword, newPassword }, authHeader);
       setPwMsg({ text: "Password updated successfully!", type: "success" });
       setCurrentPassword("");
       setNewPassword("");
@@ -60,27 +55,28 @@ const SettingsModal = ({ settingsOpen, setSettingsOpen, userInfo, onTasksCleared
   };
 
   const handleDeleteTasks = async () => {
+    setDeleteLoading(true);
     try {
-      const { data: tasks } = await axios.get(`${API_URL}/api/tasks`, authHeader);
-      await Promise.all(
-        tasks.map((task) =>
-          axios.delete(`${API_URL}/api/tasks/${task._id}`, authHeader)
-        )
-      );
+      const { data: tasks } = await axios.get("/api/tasks", authHeader);
+      await Promise.all(tasks.map((task) => axios.delete(`/api/tasks/${task._id}`, authHeader)));
       if (onTasksCleared) onTasksCleared();
       handleClose();
     } catch (error) {
       alert(error.response?.data?.message || "Failed to delete tasks");
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
   const handleDeleteAccount = async () => {
+    setDeleteLoading(true);
     try {
-      await axios.delete(`${API_URL}/api/auth/delete-account`, authHeader);
+      await axios.delete("/api/auth/delete-account", authHeader);
       localStorage.removeItem("userInfo");
       window.location.href = "/signup";
     } catch (error) {
       alert(error.response?.data?.message || error.message || "Failed to delete account");
+      setDeleteLoading(false);
     }
   };
 
@@ -89,9 +85,7 @@ const SettingsModal = ({ settingsOpen, setSettingsOpen, userInfo, onTasksCleared
   return (
     <div
       className="settings-overlay"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) handleClose();
-      }}
+      onClick={(e) => { if (e.target === e.currentTarget) handleClose(); }}
     >
       <div className="settings-modal">
 
@@ -101,17 +95,12 @@ const SettingsModal = ({ settingsOpen, setSettingsOpen, userInfo, onTasksCleared
             {activeSection && (
               <button
                 className="settings-back-btn"
-                onClick={() => {
-                  setActiveSection(null);
-                  setPwMsg({ text: "", type: "" });
-                }}
+                onClick={() => { setActiveSection(null); setPwMsg({ text: "", type: "" }); }}
               >
                 <i className="bi bi-arrow-left" />
               </button>
             )}
-            <i className="bi bi-gear-fill"
-              style={{ color: "var(--blue)", fontSize: "1.1rem" }}
-            />
+            <i className="bi bi-gear-fill" style={{ color: "var(--blue)", fontSize: "1.1rem" }} />
             <span className="settings-title">
               {activeSection === "password" && "Change Password"}
               {activeSection === "deleteTasks" && "Delete Tasks"}
@@ -128,17 +117,11 @@ const SettingsModal = ({ settingsOpen, setSettingsOpen, userInfo, onTasksCleared
         {!activeSection && (
           <div className="settings-body">
             <div className="settings-section-label">
-              <i className="bi bi-shield-lock me-1" />
-              Security
+              <i className="bi bi-shield-lock me-1" />Security
             </div>
 
-            <button
-              className="settings-menu-item"
-              onClick={() => setActiveSection("password")}
-            >
-              <div className="settings-menu-icon blue">
-                <i className="bi bi-key" />
-              </div>
+            <button className="settings-menu-item" onClick={() => setActiveSection("password")}>
+              <div className="settings-menu-icon blue"><i className="bi bi-key" /></div>
               <div className="settings-menu-text">
                 <div className="settings-menu-title">Change Password</div>
                 <div className="settings-menu-desc">Update your account password</div>
@@ -149,17 +132,11 @@ const SettingsModal = ({ settingsOpen, setSettingsOpen, userInfo, onTasksCleared
             <div className="settings-divider" />
 
             <div className="settings-section-label">
-              <i className="bi bi-database me-1" />
-              Data Management
+              <i className="bi bi-database me-1" />Data Management
             </div>
 
-            <button
-              className="settings-menu-item"
-              onClick={() => setActiveSection("deleteTasks")}
-            >
-              <div className="settings-menu-icon amber">
-                <i className="bi bi-trash" />
-              </div>
+            <button className="settings-menu-item" onClick={() => setActiveSection("deleteTasks")}>
+              <div className="settings-menu-icon amber"><i className="bi bi-trash" /></div>
               <div className="settings-menu-text">
                 <div className="settings-menu-title">Delete All Tasks</div>
                 <div className="settings-menu-desc">Permanently remove all tasks</div>
@@ -167,20 +144,11 @@ const SettingsModal = ({ settingsOpen, setSettingsOpen, userInfo, onTasksCleared
               <i className="bi bi-chevron-right settings-menu-arrow" />
             </button>
 
-            <button
-              className="settings-menu-item"
-              onClick={() => setActiveSection("deleteAccount")}
-            >
-              <div className="settings-menu-icon red">
-                <i className="bi bi-person-x" />
-              </div>
+            <button className="settings-menu-item" onClick={() => setActiveSection("deleteAccount")}>
+              <div className="settings-menu-icon red"><i className="bi bi-person-x" /></div>
               <div className="settings-menu-text">
-                <div className="settings-menu-title" style={{ color: "var(--red)" }}>
-                  Delete Account
-                </div>
-                <div className="settings-menu-desc">
-                  Permanently delete your account
-                </div>
+                <div className="settings-menu-title" style={{ color: "var(--red)" }}>Delete Account</div>
+                <div className="settings-menu-desc">Permanently delete your account</div>
               </div>
               <i className="bi bi-chevron-right settings-menu-arrow" />
             </button>
@@ -193,53 +161,25 @@ const SettingsModal = ({ settingsOpen, setSettingsOpen, userInfo, onTasksCleared
             <Form onSubmit={handleChangePassword}>
               <Form.Group className="mb-3">
                 <Form.Label>Current Password</Form.Label>
-                <Form.Control
-                  type="password"
-                  placeholder="Enter current password"
-                  value={currentPassword}
-                  onChange={e => setCurrentPassword(e.target.value)}
-                  required
-                />
+                <Form.Control type="password" placeholder="Enter current password" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} required />
               </Form.Group>
-
               <Form.Group className="mb-3">
                 <Form.Label>New Password</Form.Label>
-                <Form.Control
-                  type="password"
-                  placeholder="Enter new password"
-                  value={newPassword}
-                  onChange={e => setNewPassword(e.target.value)}
-                  required
-                />
+                <Form.Control type="password" placeholder="Enter new password" value={newPassword} onChange={e => setNewPassword(e.target.value)} required />
               </Form.Group>
-
               <Form.Group className="mb-3">
                 <Form.Label>Confirm Password</Form.Label>
-                <Form.Control
-                  type="password"
-                  placeholder="Confirm new password"
-                  value={confirmPassword}
-                  onChange={e => setConfirmPassword(e.target.value)}
-                  required
-                />
+                <Form.Control type="password" placeholder="Confirm new password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required />
               </Form.Group>
 
               {pwMsg.text && (
                 <div className={`settings-msg ${pwMsg.type}`}>
-                  <i className={`bi me-2 ${pwMsg.type === "success"
-                    ? "bi-check-circle"
-                    : "bi-exclamation-circle"}`}
-                  />
+                  <i className={`bi me-2 ${pwMsg.type === "success" ? "bi-check-circle" : "bi-exclamation-circle"}`} />
                   {pwMsg.text}
                 </div>
               )}
 
-              <Button
-                type="submit"
-                variant="primary"
-                className="w-100"
-                disabled={pwLoading}
-              >
+              <Button type="submit" variant="primary" className="w-100" disabled={pwLoading}>
                 {pwLoading
                   ? <><i className="bi bi-arrow-clockwise me-2" />Updating...</>
                   : <><i className="bi bi-check-lg me-2" />Update Password</>
@@ -253,27 +193,18 @@ const SettingsModal = ({ settingsOpen, setSettingsOpen, userInfo, onTasksCleared
         {activeSection === "deleteTasks" && (
           <div className="settings-body">
             <div className="settings-danger-card amber">
-              <i className="bi bi-exclamation-triangle"
-                style={{ fontSize: "2rem", color: "var(--amber)", marginBottom: "12px" }}
-              />
-              <div style={{ color: "var(--text-primary)", fontWeight: 600, fontSize: "1rem", marginBottom: "8px" }}>
-                Delete All Tasks?
-              </div>
+              <i className="bi bi-exclamation-triangle" style={{ fontSize: "2rem", color: "var(--amber)", marginBottom: "12px" }} />
+              <div style={{ color: "var(--text-primary)", fontWeight: 600, fontSize: "1rem", marginBottom: "8px" }}>Delete All Tasks?</div>
               <div style={{ color: "var(--text-muted)", fontSize: "0.85rem", lineHeight: 1.6, marginBottom: "20px" }}>
-                This will permanently remove all your tasks.
-                This action cannot be undone.
+                This will permanently remove all your tasks from the database. This action cannot be undone.
               </div>
-              <button
-                className="settings-danger-btn amber"
-                onClick={handleDeleteTasks}
-              >
-                <i className="bi bi-trash me-2" />
-                Yes, Delete All Tasks
+              <button className="settings-danger-btn amber" onClick={handleDeleteTasks} disabled={deleteLoading}>
+                {deleteLoading
+                  ? <><i className="bi bi-arrow-clockwise me-2" />Deleting...</>
+                  : <><i className="bi bi-trash me-2" />Yes, Delete All Tasks</>
+                }
               </button>
-              <button
-                className="settings-cancel-btn"
-                onClick={() => setActiveSection(null)}
-              >
+              <button className="settings-cancel-btn" onClick={() => setActiveSection(null)} disabled={deleteLoading}>
                 Cancel
               </button>
             </div>
@@ -284,27 +215,18 @@ const SettingsModal = ({ settingsOpen, setSettingsOpen, userInfo, onTasksCleared
         {activeSection === "deleteAccount" && (
           <div className="settings-body">
             <div className="settings-danger-card red">
-              <i className="bi bi-person-x-fill"
-                style={{ fontSize: "2rem", color: "var(--red)", marginBottom: "12px" }}
-              />
-              <div style={{ color: "var(--text-primary)", fontWeight: 600, fontSize: "1rem", marginBottom: "8px" }}>
-                Delete Account?
-              </div>
+              <i className="bi bi-person-x-fill" style={{ fontSize: "2rem", color: "var(--red)", marginBottom: "12px" }} />
+              <div style={{ color: "var(--text-primary)", fontWeight: 600, fontSize: "1rem", marginBottom: "8px" }}>Delete Account?</div>
               <div style={{ color: "var(--text-muted)", fontSize: "0.85rem", lineHeight: 1.6, marginBottom: "20px" }}>
-                Your account and all data will be permanently deleted.
-                You cannot recover this account after deletion.
+                Your account and all tasks will be permanently deleted. This cannot be undone.
               </div>
-              <button
-                className="settings-danger-btn red"
-                onClick={handleDeleteAccount}
-              >
-                <i className="bi bi-person-x me-2" />
-                Yes, Delete My Account
+              <button className="settings-danger-btn red" onClick={handleDeleteAccount} disabled={deleteLoading}>
+                {deleteLoading
+                  ? <><i className="bi bi-arrow-clockwise me-2" />Deleting...</>
+                  : <><i className="bi bi-person-x me-2" />Yes, Delete My Account</>
+                }
               </button>
-              <button
-                className="settings-cancel-btn"
-                onClick={() => setActiveSection(null)}
-              >
+              <button className="settings-cancel-btn" onClick={() => setActiveSection(null)} disabled={deleteLoading}>
                 Cancel
               </button>
             </div>

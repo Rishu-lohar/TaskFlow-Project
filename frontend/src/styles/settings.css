@@ -1,97 +1,290 @@
+/* ── Overlay ── */
 .settings-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,.6);
+  background: rgba(0, 0, 0, 0.6);
   z-index: 99999;
-
   display: flex;
   justify-content: center;
   align-items: center;
+  padding: 16px;
 }
 
+/* ── Modal ── */
 .settings-modal {
   width: 100%;
-  max-width: 500px;
-
+  max-width: 480px;
   background: var(--bg-card);
-
   border: 1px solid var(--border);
-
   border-radius: 18px;
-
   overflow: hidden;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
 }
 
+/* ── Header ── */
 .settings-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-
-  padding: 20px;
-
+  padding: 18px 20px;
   border-bottom: 1px solid var(--border);
+  background: var(--bg-input);
 }
 
-.settings-header button {
+.settings-title {
+  color: var(--text-primary);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.settings-close-btn {
   background: transparent;
   border: none;
+  color: var(--text-muted);
+  font-size: 1.4rem;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0 4px;
+  transition: color 0.2s;
+}
+
+.settings-close-btn:hover {
   color: var(--text-primary);
 }
 
-.settings-body {
-  padding: 24px;
-}
-
-.settings-section {
-  margin-bottom: 30px;
-}
-
-.settings-section h6 {
-  margin-bottom: 15px;
-  color: var(--text-muted);
-}
-
-.pw-message {
-  padding: 10px;
-  border-radius: 8px;
-  margin-bottom: 12px;
-}
-
-.pw-message.success {
-  background: rgba(63,185,80,.15);
-  color: #3fb950;
-}
-
-.pw-message.error {
-  background: rgba(248,81,73,.15);
-  color: #f85149;
-}
-
-.danger-btn-outline {
-  width: 100%;
-  margin-bottom: 10px;
-
-  border: 1px solid #f85149;
-
+.settings-back-btn {
   background: transparent;
-
-  color: #f85149;
-
-  padding: 10px;
-
-  border-radius: 10px;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  transition: color 0.2s;
 }
 
-.danger-btn {
+.settings-back-btn:hover {
+  color: var(--text-primary);
+}
+
+/* ── Body ── */
+.settings-body {
+  padding: 20px;
+}
+
+/* ── Section Label ── */
+.settings-section-label {
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 8px;
+  padding: 0 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ── Divider ── */
+.settings-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 16px 0;
+}
+
+/* ── Menu Items ── */
+.settings-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
   width: 100%;
+  padding: 12px 14px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 8px;
+  text-align: left;
+}
 
-  border: none;
+.settings-menu-item:last-child {
+  margin-bottom: 0;
+}
 
-  background: #f85149;
+.settings-menu-item:hover {
+  background: var(--bg-input);
+  border-color: var(--border-hover);
+}
 
-  color: white;
-
-  padding: 10px;
-
+.settings-menu-icon {
+  width: 36px;
+  height: 36px;
   border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.settings-menu-icon.blue {
+  background: var(--blue-dim);
+  color: var(--blue);
+  border: 1px solid rgba(88, 166, 255, 0.25);
+}
+
+.settings-menu-icon.amber {
+  background: var(--amber-dim);
+  color: var(--amber);
+  border: 1px solid rgba(210, 153, 34, 0.25);
+}
+
+.settings-menu-icon.red {
+  background: var(--red-dim);
+  color: var(--red);
+  border: 1px solid rgba(248, 81, 73, 0.25);
+}
+
+.settings-menu-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.settings-menu-title {
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.settings-menu-desc {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
+.settings-menu-arrow {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  flex-shrink: 0;
+}
+
+/* ── Message (password feedback) ── */
+.settings-msg {
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-bottom: 14px;
+  font-size: 0.88rem;
+  display: flex;
+  align-items: center;
+}
+
+.settings-msg.success {
+  background: var(--green-dim);
+  border: 1px solid rgba(63, 185, 80, 0.3);
+  color: var(--green);
+}
+
+.settings-msg.error {
+  background: var(--red-dim);
+  border: 1px solid rgba(248, 81, 73, 0.3);
+  color: var(--red);
+}
+
+/* ── Danger Card ── */
+.settings-danger-card {
+  border-radius: 14px;
+  padding: 24px 20px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.settings-danger-card.amber {
+  background: var(--amber-dim);
+  border: 1px solid rgba(210, 153, 34, 0.25);
+}
+
+.settings-danger-card.red {
+  background: var(--red-dim);
+  border: 1px solid rgba(248, 81, 73, 0.25);
+}
+
+/* ── Danger Buttons ── */
+.settings-danger-btn {
+  width: 100%;
+  padding: 11px 20px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.settings-danger-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.settings-danger-btn.amber {
+  background: var(--amber);
+  border: 1px solid var(--amber);
+  color: #0d1117;
+}
+
+.settings-danger-btn.amber:hover:not(:disabled) {
+  background: #e6ac30;
+}
+
+.settings-danger-btn.red {
+  background: var(--red);
+  border: 1px solid var(--red);
+  color: #fff;
+}
+
+.settings-danger-btn.red:hover:not(:disabled) {
+  background: #ff6b6b;
+}
+
+/* ── Cancel Button ── */
+.settings-cancel-btn {
+  width: 100%;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-weight: 500;
+  font-size: 0.9rem;
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+}
+
+.settings-cancel-btn:hover:not(:disabled) {
+  background: var(--bg-input);
+  color: var(--text-primary);
+}
+
+.settings-cancel-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ── Mobile ── */
+@media (max-width: 480px) {
+  .settings-modal {
+    max-width: 100%;
+    border-radius: 14px;
+  }
+
+  .settings-body {
+    padding: 16px;
+  }
 }

@@ -10,18 +10,19 @@ import TaskList from "../components/TaskList";
 import Calendar from "../components/Calendar";
 import Insights from "../components/Insights";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
-
 function Home() {
   const navigate = useNavigate();
   const [tasks, setTasks] = useState([]);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [loading, setLoading] = useState(true);
 
-  const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
-  const authHeader = { headers: { Authorization: `Bearer ${userInfo.token}` } };
+  const getAuthHeader = () => {
+    const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
+    return { headers: { Authorization: `Bearer ${userInfo.token}` } };
+  };
 
   useEffect(() => {
+    const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
     if (!userInfo.token) {
       navigate("/login");
       return;
@@ -31,7 +32,7 @@ function Home() {
 
   const fetchTasks = async () => {
     try {
-      const { data } = await axios.get(`${API_URL}/api/tasks`, authHeader);
+      const { data } = await axios.get("/api/tasks", getAuthHeader());
       setTasks(data);
     } catch (error) {
       if (error.response?.status === 401) {
@@ -45,7 +46,7 @@ function Home() {
 
   const addTask = async (taskData) => {
     try {
-      const { data } = await axios.post(`${API_URL}/api/tasks`, taskData, authHeader);
+      const { data } = await axios.post("/api/tasks", taskData, getAuthHeader());
       setTasks((prev) => [data, ...prev]);
     } catch (error) {
       alert(error.response?.data?.message || "Failed to add task");
@@ -54,7 +55,7 @@ function Home() {
 
   const deleteTask = async (id) => {
     try {
-      await axios.delete(`${API_URL}/api/tasks/${id}`, authHeader);
+      await axios.delete(`/api/tasks/${id}`, getAuthHeader());
       setTasks((prev) => prev.filter((task) => task._id !== id));
     } catch (error) {
       alert(error.response?.data?.message || "Failed to delete task");
@@ -63,10 +64,8 @@ function Home() {
 
   const toggleTask = async (id) => {
     try {
-      const { data } = await axios.put(`${API_URL}/api/tasks/${id}`, {}, authHeader);
-      setTasks((prev) =>
-        prev.map((task) => (task._id === id ? data : task))
-      );
+      const { data } = await axios.put(`/api/tasks/${id}`, {}, getAuthHeader());
+      setTasks((prev) => prev.map((task) => (task._id === id ? data : task)));
     } catch (error) {
       alert(error.response?.data?.message || "Failed to update task");
     }
@@ -74,25 +73,21 @@ function Home() {
 
   if (loading) {
     return (
-      <div className="app">
-        <Header />
-        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "60vh" }}>
-          <div style={{ color: "var(--text-secondary)", fontSize: "1rem" }}>
-            <i className="bi bi-arrow-clockwise me-2" style={{ animation: "spin 1s linear infinite" }} />
-            Loading tasks...
-          </div>
+      <div style={{ minHeight: '100vh', background: 'var(--bg-main)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ color: 'var(--text-secondary)', fontSize: '1rem' }}>
+          <i className="bi bi-arrow-clockwise me-2" />
+          Loading tasks...
         </div>
       </div>
     );
   }
 
   return (
-    <div className="app">
+    <div style={{ minHeight: '100vh', background: 'var(--bg-main)', color: 'var(--text-primary)' }}>
       <Header onTasksCleared={() => setTasks([])} />
       <div style={{ padding: '28px 24px' }}>
         <Container fluid>
           <div className="main-layout">
-
             <div className="left-panel">
               <TaskForm onAddTask={addTask} />
               <Dashboard tasks={tasks} />
@@ -102,7 +97,6 @@ function Home() {
                 onToggleTask={toggleTask}
               />
             </div>
-
             <div className="right-panel">
               <Calendar
                 tasks={tasks}
@@ -111,7 +105,6 @@ function Home() {
               />
               <Insights tasks={tasks} />
             </div>
-
           </div>
         </Container>
       </div>

@@ -41,65 +41,6 @@ html, body, #root {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
 }
 
-/* ============ APP WRAPPER ============ */
-.app {
-  min-height: 100vh;
-  background: var(--bg-main);
-  padding: 28px 24px;
-  color: var(--text-primary);
-}
-
-/* ============ HEADER ============ */
-header {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-xl);
-  padding: 32px 36px;
-  margin-bottom: 32px;
-  position: relative;
-  overflow: visible;
-}
-
-header::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(88,166,255,0.25), transparent);
-}
-
-header h1 {
-  color: var(--text-primary);
-  font-size: 2.2rem;
-  font-weight: 700;
-  letter-spacing: -0.5px;
-  margin-bottom: 8px;
-}
-
-header p {
-  color: var(--text-secondary);
-  font-size: 1rem;
-  font-weight: 400;
-}
-
-/* ============ LAYOUT ============ */
-.main-layout {
-  display: grid;
-  grid-template-columns: 1fr 360px;
-  gap: 24px;
-  max-width: 1500px;
-  margin: 0 auto;
-}
-
-.left-panel,
-.right-panel {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
 /* ============ CARD ============ */
 .card {
   background: var(--bg-card);
@@ -112,7 +53,6 @@ header p {
 .card:hover {
   border-color: var(--border-hover);
   background: var(--bg-card-hover);
-  transform: translateY(-3px);
 }
 
 .card-header {
@@ -136,6 +76,22 @@ header p {
 
 .card-body {
   padding: 22px 24px !important;
+}
+
+/* ============ LAYOUT ============ */
+.main-layout {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 24px;
+  max-width: 1500px;
+  margin: 0 auto;
+}
+
+.left-panel,
+.right-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 /* ============ BUTTONS ============ */
@@ -275,7 +231,6 @@ header p {
   justify-content: space-between;
   align-items: center;
   transition: all 0.2s ease;
-  cursor: pointer;
 }
 
 .task-item:hover {
@@ -284,7 +239,7 @@ header p {
 }
 
 .task-item.completed {
-  opacity: 0.5;
+  opacity: 0.6;
   border-left: 3px solid var(--green);
   padding-left: 15px;
 }
@@ -313,14 +268,6 @@ header p {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
-}
-
-.checkbox-custom {
-  width: 18px;
-  height: 18px;
-  cursor: pointer;
-  accent-color: var(--blue);
-  border-radius: 4px;
 }
 
 /* ============ STAT CARDS ============ */
@@ -357,81 +304,6 @@ header p {
   margin-top: 6px;
 }
 
-/* ============ CALENDAR ============ */
-.calendar-grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 6px;
-  width: 100%;
-}
-
-.calendar-weekdays {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  text-align: center;
-  margin-bottom: 12px;
-}
-
-.weekday {
-  color: var(--text-muted);
-  font-weight: 600;
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.calendar-day {
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--bg-input);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  color: var(--text-secondary);
-  font-size: 0.85rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  position: relative;
-}
-
-.calendar-day:hover {
-  background: var(--blue-dim);
-  border-color: var(--blue);
-  color: var(--blue);
-}
-
-.calendar-day.today {
-  background: var(--blue);
-  border-color: var(--blue);
-  color: #0d1117;
-  font-weight: 700;
-}
-
-.calendar-day.empty {
-  background: transparent;
-  border: none;
-  pointer-events: none;
-}
-
-.calendar-dot {
-  position: absolute;
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  bottom: 4px;
-  background: var(--blue);
-}
-
-.calendar-dot.completed {
-  background: var(--green);
-}
-
-.calendar-dot.overdue {
-  background: var(--red);
-}
-
 /* ============ INSIGHTS ============ */
 .insight-item {
   padding: 16px 18px;
@@ -442,9 +314,7 @@ header p {
   transition: all 0.2s ease;
 }
 
-.insight-item:last-child {
-  margin-bottom: 0;
-}
+.insight-item:last-child { margin-bottom: 0; }
 
 .insight-item:hover {
   border-color: var(--border-hover);
@@ -461,22 +331,24 @@ header p {
 }
 
 .insight-value {
-  font-size: 1.4rem;
+  font-size: 1.2rem;
   font-weight: 700;
   color: var(--blue);
 }
+
+.insight-good { color: var(--green) !important; }
+.insight-warning { color: var(--amber) !important; }
+.insight-danger { color: var(--red) !important; }
 
 /* ============ PROGRESS ============ */
 .progress {
   background: var(--border);
   border-radius: 10px;
   height: 6px;
-  margin-top: 10px;
   overflow: hidden;
 }
 
 .progress-bar {
-  background: var(--blue);
   border-radius: 10px;
   transition: width 0.4s ease;
 }
@@ -500,159 +372,14 @@ header p {
   color: var(--text-secondary);
 }
 
-/* ============ TAGS (like student hub) ============ */
-.tag {
-  display: inline-flex;
-  align-items: center;
-  background: var(--bg-tag);
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  padding: 3px 10px;
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-  font-weight: 500;
-  letter-spacing: 0.2px;
-}
-
-/* ============ TOAST ============ */
-.toast-container {
-  position: fixed;
-  top: 24px;
-  right: 24px;
-  z-index: 9999;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.toast {
-  background: var(--bg-card) !important;
-  border: 1px solid var(--border) !important;
-  border-radius: var(--radius-lg) !important;
-  color: var(--text-primary) !important;
-  min-width: 300px;
-  padding: 14px 18px;
-  font-size: 0.9rem;
-}
-
-.toast.success {
-  border-left: 3px solid var(--green) !important;
-}
-
-.toast.error {
-  border-left: 3px solid var(--red) !important;
-}
-
-.toast.info {
-  border-left: 3px solid var(--blue) !important;
-}
-
 /* ============ SCROLLBAR ============ */
-::-webkit-scrollbar {
-  width: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--bg-main);
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(88, 166, 255, 0.3);
-}
-
-/* ============ DIVIDER ============ */
-.divider {
-  border: none;
-  border-top: 1px solid var(--border);
-  margin: 16px 0;
-}
-
-/* ============ SECTION LABEL ============ */
-.section-label {
-  color: var(--text-muted);
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-  margin-bottom: 14px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.section-label::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: var(--border);
-}
-
-/* ============ RESPONSIVE ============ */
-@media (max-width: 1100px) {
-  .main-layout {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 768px) {
-  .app {
-    padding: 16px 14px;
-  }
-
-  header {
-    padding: 24px 20px;
-    margin-bottom: 20px;
-  }
-
-  header h1 {
-    font-size: 1.7rem;
-  }
-
-  .card-header {
-    padding: 16px 18px !important;
-  }
-
-  .card-body {
-    padding: 18px !important;
-  }
-
-  .stat-value {
-    font-size: 1.7rem !important;
-  }
-
-  .task-item {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
-
-  .calendar-grid {
-    gap: 4px;
-  }
-}
-
-@media (max-width: 480px) {
-  header h1 {
-    font-size: 1.4rem;
-  }
-
-  .btn {
-    padding: 8px 14px;
-    font-size: 0.85rem;
-  }
-
-  .stat-value {
-    font-size: 1.5rem !important;
-  }
-}
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-main); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(88, 166, 255, 0.3); }
 
 /* ============ AUTH PAGES ============ */
-.auth-page{
+.auth-page {
   min-height: 100vh;
   background: var(--bg-main);
   display: flex;
@@ -661,12 +388,12 @@ header p {
   padding: 24px;
 }
 
-.auth-card{
+.auth-card {
   width: 100%;
   max-width: 420px;
 }
 
-.auth-logo{
+.auth-logo {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -674,40 +401,31 @@ header p {
   margin-bottom: 20px;
 }
 
-.auth-logo i{
-  font-size: 2rem;
-  color: var(--blue);
+.auth-logo i { font-size: 2rem; color: var(--blue); }
+.auth-logo span { font-size: 1.8rem; font-weight: 700; color: var(--text-primary); letter-spacing: -0.5px; }
+
+.auth-title { text-align: center; color: var(--text-primary); font-size: 1.5rem; font-weight: 700; margin-bottom: 6px; }
+.auth-subtitle { text-align: center; color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px; }
+
+.auth-error {
+  background: var(--red-dim);
+  border: 1px solid rgba(248, 81, 73, 0.3);
+  border-radius: var(--radius-md);
+  color: var(--red);
+  padding: 10px 14px;
+  font-size: 0.88rem;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
 }
 
-.auth-logo span{
-  font-size: 1.8rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  letter-spacing: -0.5px;
-}
-
-.auth-title{
-  text-align: center;
-  color: var(--text-primary);
-  font-size: 1.5rem;
-  font-weight: 700;
-  margin-bottom: 6px;
-}
-
-.auth-subtitle{
-  text-align: center;
-  color: var(--text-muted);
-  font-size: 0.9rem;
-  margin-bottom: 20px;
-}
-
-.auth-divider{
+.auth-divider {
   text-align: center;
   margin: 20px 0 14px;
   position: relative;
 }
 
-.auth-divider::before{
+.auth-divider::before {
   content: '';
   position: absolute;
   top: 50%;
@@ -717,7 +435,7 @@ header p {
   background: var(--border);
 }
 
-.auth-divider span{
+.auth-divider span {
   background: var(--bg-card);
   padding: 0 12px;
   color: var(--text-muted);
@@ -726,7 +444,7 @@ header p {
   z-index: 1;
 }
 
-.auth-link-btn{
+.auth-link-btn {
   display: block;
   width: 100%;
   text-align: center;
@@ -741,8 +459,32 @@ header p {
   background: transparent;
 }
 
-.auth-link-btn:hover{
+.auth-link-btn:hover {
   border-color: var(--blue);
   color: var(--blue) !important;
   background: var(--blue-dim);
+}
+
+/* ============ RESPONSIVE ============ */
+@media (max-width: 1100px) {
+  .main-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .card-header { padding: 14px 16px !important; }
+  .card-body { padding: 16px !important; }
+  .stat-value { font-size: 1.7rem !important; }
+
+  .task-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .btn { padding: 8px 14px; font-size: 0.85rem; }
+  .stat-value { font-size: 1.5rem !important; }
 }
