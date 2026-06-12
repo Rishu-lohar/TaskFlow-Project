@@ -103,10 +103,22 @@ export const loginUser = async (req, res) => {
 // delete account
 
 export const deleteAccount = async (req, res) => {
-  await User.findByIdAndDelete(req.user._id);
+  try {
+    if (!req.user) {
+      return res.status(401).json({
+        message: "User not authenticated",
+      });
+    }
 
-  res.json({
-    success: true,
-    message: "Account deleted"
-  });
+    await User.findByIdAndDelete(req.user._id);
+
+    res.json({
+      success: true,
+      message: "Account deleted successfully",
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
+    });
+  }
 };
