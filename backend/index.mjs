@@ -10,6 +10,11 @@ import {
   errorHandler,
 } from "./src/middleware/errorMiddleware.mjs";
 
+import dns from "dns";
+
+dns.setServers(["8.8.8.8", "8.8.4.4"]);
+dns.setDefaultResultOrder("ipv4first");
+
 // Load env variables
 dotenv.config();
 
