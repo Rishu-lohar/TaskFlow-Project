@@ -16,7 +16,7 @@ function SignUp() {
 
     try {
       const { data } = await axios.post(
-        "http://localhost:8000/api/auth/register",
+        "https://taskflow-backend-sbdi.onrender.com/api/auth/register",
         { name, email, password }
       );
 
