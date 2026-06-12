@@ -81,8 +81,13 @@ const SettingsModal = ({ settingsOpen, setSettingsOpen }) => {
       localStorage.removeItem("taskflow-tasks");
       window.location.href = "/signup";
     } catch (error) {
+        console.log("FULL ERROR =>", error);
+        console.log("RESPONSE =>", error.response);
+        console.log("DATA =>", error.response?.data);
       alert(
-        error.response?.data?.message || "Failed to delete account"
+        error.response?.data?.message || 
+        error.message ||
+        "Failed to delete account"
       );
     }
   };
