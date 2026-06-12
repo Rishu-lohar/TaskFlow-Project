@@ -51,7 +51,7 @@ const SettingsModal = ({
       setPwLoading(true);
 
       await axios.put(
-        "http://taskflow-backend-sbdi.onrender.com/api/auth/change-password",
+        `${API_URL}/api/auth/change-password`,
         {
           currentPassword,
           newPassword,
@@ -109,7 +109,7 @@ const SettingsModal = ({
 
       try {
         await axios.delete(
-          "https://taskflow-backend-sbdi.onrender.com/api/auth/delete-account",
+          `${API_URL}/api/auth/delete-account`,
           {
             headers: {
               Authorization: `Bearer ${userInfo.token}`,

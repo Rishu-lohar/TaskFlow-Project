@@ -3,6 +3,8 @@ import { Card, Form, Button } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
@@ -15,7 +17,7 @@ function Login() {
 
     try {
       const { data } = await axios.post(
-        "https://taskflow-backend-sbdi.onrender.com/api/auth/login",
+        `${API_URL}/api/auth/login`,
         { email, password }
       );
 
