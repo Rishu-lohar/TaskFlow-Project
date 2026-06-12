@@ -25,7 +25,8 @@ const app = express();
 
 // ✅ CORS must be FIRST — before any routes
 app.use(cors({
-  origin: 'http://localhost:5173',
+  origin: [' http://localhost:5173',
+  "https://task-flow-project-mocha.vercel.app"],
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true
 }));
