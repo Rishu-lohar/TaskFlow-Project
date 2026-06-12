@@ -15,31 +15,23 @@ import dns from "dns";
 dns.setServers(["8.8.8.8", "8.8.4.4"]);
 dns.setDefaultResultOrder("ipv4first");
 
-// Load env variables
 dotenv.config();
 
-// Connect to MongoDB
 connectDB();
 
 const app = express();
 
-// ✅ CORS must be FIRST — before any routes
 app.use(cors({
-  origin: [
-    "http://localhost:5173",
-    "https://task-flow-project-mocha.vercel.app"],
+  origin: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true
 }));
 
-// ✅ Parse JSON — before routes
 app.use(express.json());
 
-// ✅ Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/tasks", taskRoutes);
 
-// Test route
 app.get("/", (req, res) => {
   res.json({
     success: true,
@@ -47,12 +39,11 @@ app.get("/", (req, res) => {
   });
 });
 
-// Error handlers — always last
 app.use(notFound);
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 8000;
 
-app.listen(PORT, () => {
+app.listen(PORT, "localhost", () => {
   console.log(`Server running on port ${PORT}`);
 });

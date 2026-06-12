@@ -3,21 +3,18 @@ import { Form, Button } from "react-bootstrap";
 import axios from "axios";
 import "../styles/settings.css";
 
-// ✅ API URL defined here
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
-const SettingsModal = ({ settingsOpen, setSettingsOpen }) => {
-
-  const userInfo = JSON.parse(
-    localStorage.getItem("userInfo") || "{}"
-  );
-
+const SettingsModal = ({ settingsOpen, setSettingsOpen, userInfo, onTasksCleared }) => {
   const [activeSection, setActiveSection] = useState(null);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [pwLoading, setPwLoading] = useState(false);
   const [pwMsg, setPwMsg] = useState({ text: "", type: "" });
+
+  const token = userInfo?.token;
+  const authHeader = { headers: { Authorization: `Bearer ${token}` } };
 
   const handleClose = () => {
     setSettingsOpen(false);
@@ -46,7 +43,7 @@ const SettingsModal = ({ settingsOpen, setSettingsOpen }) => {
       await axios.put(
         `${API_URL}/api/auth/change-password`,
         { currentPassword, newPassword },
-        { headers: { Authorization: `Bearer ${userInfo.token}` } }
+        authHeader
       );
       setPwMsg({ text: "Password updated successfully!", type: "success" });
       setCurrentPassword("");
@@ -62,33 +59,28 @@ const SettingsModal = ({ settingsOpen, setSettingsOpen }) => {
     }
   };
 
-  const handleDeleteTasks = () => {
-    if (window.confirm("Delete all tasks? This cannot be undone.")) {
-      localStorage.removeItem("taskflow-tasks");
-      window.location.reload();
+  const handleDeleteTasks = async () => {
+    try {
+      const { data: tasks } = await axios.get(`${API_URL}/api/tasks`, authHeader);
+      await Promise.all(
+        tasks.map((task) =>
+          axios.delete(`${API_URL}/api/tasks/${task._id}`, authHeader)
+        )
+      );
+      if (onTasksCleared) onTasksCleared();
+      handleClose();
+    } catch (error) {
+      alert(error.response?.data?.message || "Failed to delete tasks");
     }
   };
 
   const handleDeleteAccount = async () => {
-    if (!window.confirm("Delete your account permanently? This cannot be undone.")) return;
-
     try {
-      await axios.delete(
-        `${API_URL}/api/auth/delete-account`,
-        { headers: { Authorization: `Bearer ${userInfo.token}` } }
-      );
+      await axios.delete(`${API_URL}/api/auth/delete-account`, authHeader);
       localStorage.removeItem("userInfo");
-      localStorage.removeItem("taskflow-tasks");
       window.location.href = "/signup";
     } catch (error) {
-        console.log("FULL ERROR =>", error);
-        console.log("RESPONSE =>", error.response);
-        console.log("DATA =>", error.response?.data);
-      alert(
-        error.response?.data?.message || 
-        error.message ||
-        "Failed to delete account"
-      );
+      alert(error.response?.data?.message || error.message || "Failed to delete account");
     }
   };
 
@@ -103,13 +95,9 @@ const SettingsModal = ({ settingsOpen, setSettingsOpen }) => {
     >
       <div className="settings-modal">
 
-        {/* ── Header ── */}
+        {/* Header */}
         <div className="settings-header">
-          <div style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "10px"
-          }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
             {activeSection && (
               <button
                 className="settings-back-btn"
@@ -131,18 +119,14 @@ const SettingsModal = ({ settingsOpen, setSettingsOpen }) => {
               {!activeSection && "Settings"}
             </span>
           </div>
-
           <button className="settings-close-btn" onClick={handleClose}>
             <i className="bi bi-x" />
           </button>
         </div>
 
-        {/* ══════════════════
-            MAIN MENU
-        ══════════════════ */}
+        {/* MAIN MENU */}
         {!activeSection && (
           <div className="settings-body">
-
             <div className="settings-section-label">
               <i className="bi bi-shield-lock me-1" />
               Security
@@ -191,9 +175,7 @@ const SettingsModal = ({ settingsOpen, setSettingsOpen }) => {
                 <i className="bi bi-person-x" />
               </div>
               <div className="settings-menu-text">
-                <div className="settings-menu-title"
-                  style={{ color: "var(--red)" }}
-                >
+                <div className="settings-menu-title" style={{ color: "var(--red)" }}>
                   Delete Account
                 </div>
                 <div className="settings-menu-desc">
@@ -202,17 +184,13 @@ const SettingsModal = ({ settingsOpen, setSettingsOpen }) => {
               </div>
               <i className="bi bi-chevron-right settings-menu-arrow" />
             </button>
-
           </div>
         )}
 
-        {/* ══════════════════
-            CHANGE PASSWORD
-        ══════════════════ */}
+        {/* CHANGE PASSWORD */}
         {activeSection === "password" && (
           <div className="settings-body">
             <Form onSubmit={handleChangePassword}>
-
               <Form.Group className="mb-3">
                 <Form.Label>Current Password</Form.Label>
                 <Form.Control
@@ -267,38 +245,21 @@ const SettingsModal = ({ settingsOpen, setSettingsOpen }) => {
                   : <><i className="bi bi-check-lg me-2" />Update Password</>
                 }
               </Button>
-
             </Form>
           </div>
         )}
 
-        {/* ══════════════════
-            DELETE TASKS
-        ══════════════════ */}
+        {/* DELETE TASKS */}
         {activeSection === "deleteTasks" && (
           <div className="settings-body">
             <div className="settings-danger-card amber">
               <i className="bi bi-exclamation-triangle"
-                style={{
-                  fontSize: "2rem",
-                  color: "var(--amber)",
-                  marginBottom: "12px"
-                }}
+                style={{ fontSize: "2rem", color: "var(--amber)", marginBottom: "12px" }}
               />
-              <div style={{
-                color: "var(--text-primary)",
-                fontWeight: 600,
-                fontSize: "1rem",
-                marginBottom: "8px"
-              }}>
+              <div style={{ color: "var(--text-primary)", fontWeight: 600, fontSize: "1rem", marginBottom: "8px" }}>
                 Delete All Tasks?
               </div>
-              <div style={{
-                color: "var(--text-muted)",
-                fontSize: "0.85rem",
-                lineHeight: 1.6,
-                marginBottom: "20px"
-              }}>
+              <div style={{ color: "var(--text-muted)", fontSize: "0.85rem", lineHeight: 1.6, marginBottom: "20px" }}>
                 This will permanently remove all your tasks.
                 This action cannot be undone.
               </div>
@@ -319,33 +280,17 @@ const SettingsModal = ({ settingsOpen, setSettingsOpen }) => {
           </div>
         )}
 
-        {/* ══════════════════
-            DELETE ACCOUNT
-        ══════════════════ */}
+        {/* DELETE ACCOUNT */}
         {activeSection === "deleteAccount" && (
           <div className="settings-body">
             <div className="settings-danger-card red">
               <i className="bi bi-person-x-fill"
-                style={{
-                  fontSize: "2rem",
-                  color: "var(--red)",
-                  marginBottom: "12px"
-                }}
+                style={{ fontSize: "2rem", color: "var(--red)", marginBottom: "12px" }}
               />
-              <div style={{
-                color: "var(--text-primary)",
-                fontWeight: 600,
-                fontSize: "1rem",
-                marginBottom: "8px"
-              }}>
+              <div style={{ color: "var(--text-primary)", fontWeight: 600, fontSize: "1rem", marginBottom: "8px" }}>
                 Delete Account?
               </div>
-              <div style={{
-                color: "var(--text-muted)",
-                fontSize: "0.85rem",
-                lineHeight: 1.6,
-                marginBottom: "20px"
-              }}>
+              <div style={{ color: "var(--text-muted)", fontSize: "0.85rem", lineHeight: 1.6, marginBottom: "20px" }}>
                 Your account and all data will be permanently deleted.
                 You cannot recover this account after deletion.
               </div>
