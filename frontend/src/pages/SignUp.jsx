@@ -3,6 +3,8 @@ import { Card, Form, Button } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 function SignUp() {
   const navigate = useNavigate();
   const [name, setName] = useState("");
