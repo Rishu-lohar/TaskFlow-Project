@@ -102,6 +102,7 @@ const Header = () => {
                 setSettingsOpen={setSettingsOpen}
                 isDark={isDark}
                 toggleTheme={toggleTheme}
+                handleLogout={handleLogout}
               />
             </div>
 
