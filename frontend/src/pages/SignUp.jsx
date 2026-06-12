@@ -17,11 +17,15 @@ function SignUp() {
     setError("");
 
     try {
-      const { data } = await axios.post("/api/auth/register", { name, email, password });
-      localStorage.setItem("userInfo", JSON.stringify(data));
-      navigate("/dashboard");
+      await axios.post("/api/auth/register", { name, email, password });
+      navigate("/verify-email", { state: { email } });
     } catch (err) {
-      setError(err.response?.data?.message || "Registration failed. Please try again.");
+      const data = err.response?.data;
+      if (data?.pendingVerification) {
+        navigate("/verify-email", { state: { email } });
+        return;
+      }
+      setError(data?.message || "Registration failed. Please try again.");
     } finally {
       setLoading(false);
     }

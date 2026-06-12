@@ -20,7 +20,12 @@ function Login() {
       localStorage.setItem("userInfo", JSON.stringify(data));
       navigate("/dashboard");
     } catch (err) {
-      setError(err.response?.data?.message || "Login failed. Please try again.");
+      const data = err.response?.data;
+      if (data?.pendingVerification) {
+        navigate("/verify-email", { state: { email: data.email } });
+        return;
+      }
+      setError(data?.message || "Login failed. Please try again.");
     } finally {
       setLoading(false);
     }

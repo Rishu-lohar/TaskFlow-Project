@@ -7,26 +7,26 @@ const taskSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
-
     title: {
       type: String,
       required: true,
       trim: true,
     },
-
     priority: {
       type: String,
       enum: ["Low", "Medium", "High"],
       default: "Medium",
     },
-
     deadline: {
       type: Date,
     },
-
     completed: {
       type: Boolean,
       default: false,
+    },
+    reminderSent: {
+      type: String,
+      default: null,
     },
   },
   {
