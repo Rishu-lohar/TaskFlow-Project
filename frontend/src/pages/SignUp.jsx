@@ -15,17 +15,23 @@ function SignUp() {
     e.preventDefault();
     setLoading(true);
     setError("");
-
     try {
-      await axios.post("/api/auth/register", { name, email, password });
-      navigate("/verify-email", { state: { email } });
+      const { data } = await axios.post("/api/auth/register", { name, email, password });
+      if (data.token) {
+        // Email not configured — user was auto-verified, log straight in
+        localStorage.setItem("userInfo", JSON.stringify(data));
+        navigate("/dashboard");
+      } else {
+        // OTP sent — go to verify page
+        navigate("/verify-email", { state: { email } });
+      }
     } catch (err) {
-      const data = err.response?.data;
-      if (data?.pendingVerification) {
+      const resData = err.response?.data;
+      if (resData?.pendingVerification) {
         navigate("/verify-email", { state: { email } });
         return;
       }
-      setError(data?.message || "Registration failed. Please try again.");
+      setError(resData?.message || "Registration failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -50,49 +56,27 @@ function SignUp() {
                   <i className="bi bi-exclamation-circle me-2"></i>{error}
                 </div>
               )}
-
               <Form.Group className="mb-3">
                 <Form.Label>Full Name</Form.Label>
-                <Form.Control
-                  type="text"
-                  placeholder="Enter your name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required
-                />
+                <Form.Control type="text" placeholder="Enter your name"
+                  value={name} onChange={e => setName(e.target.value)} required />
               </Form.Group>
-
               <Form.Group className="mb-3">
                 <Form.Label>Email Address</Form.Label>
-                <Form.Control
-                  type="email"
-                  placeholder="Enter your email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
+                <Form.Control type="email" placeholder="Enter your email"
+                  value={email} onChange={e => setEmail(e.target.value)} required />
               </Form.Group>
-
               <Form.Group className="mb-4">
                 <Form.Label>Password</Form.Label>
-                <Form.Control
-                  type="password"
-                  placeholder="Create a password (min 6 chars)"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  minLength={6}
-                />
+                <Form.Control type="password" placeholder="Create a password (min 6 chars)"
+                  value={password} onChange={e => setPassword(e.target.value)} required minLength={6} />
               </Form.Group>
-
               <Button type="submit" variant="primary" className="w-100" disabled={loading}>
                 {loading
                   ? <><i className="bi bi-arrow-clockwise me-2"></i>Creating...</>
-                  : <><i className="bi bi-person-plus me-2"></i>Create Account</>
-                }
+                  : <><i className="bi bi-person-plus me-2"></i>Create Account</>}
               </Button>
             </Form>
-
             <div className="auth-divider"><span>Already have an account?</span></div>
             <Link to="/login" className="auth-link-btn">Login to TaskFlow</Link>
           </Card.Body>
