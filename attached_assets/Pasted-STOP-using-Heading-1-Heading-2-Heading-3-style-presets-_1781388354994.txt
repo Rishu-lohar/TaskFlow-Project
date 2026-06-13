@@ -1,0 +1,205 @@
+STOP using Heading 1, Heading 2, Heading 3 style presets.
+
+I want a modern productivity notes editor similar to Notion, Google Docs, Microsoft Loop, Evernote or Obsidian.
+
+========================
+NOTES EDITOR REDESIGN
+========================
+
+Remove:
+
+- Heading 1
+- Heading 2
+- Heading 3
+- Quote
+- Code Block
+
+Replace the Style dropdown with modern text styles:
+
+Normal Text
+Title
+Subtitle
+Important
+Highlight
+Callout
+Checklist
+Bullet List
+Numbered List
+
+The purpose is not blogging.
+
+The purpose is productivity note-taking.
+
+========================
+TEXT STYLING
+========================
+
+Users should be able to:
+
+- Bold
+- Italic
+- Underline
+- Strikethrough
+
+Font Size:
+
+8
+10
+12
+14
+16
+18
+20
+24
+28
+32
+40
+48
+
+Font Family:
+
+Poppins
+Inter
+Roboto
+Montserrat
+
+========================
+EDITOR EXPERIENCE
+========================
+
+Fix all editor bugs:
+
+- cursor jumping
+- text insertion issues
+- focus loss
+- selection loss
+- formatting reset
+- dropdown issues
+
+Typing must behave exactly like Google Docs.
+
+========================
+TOOLBAR CLEANUP
+========================
+
+Current toolbar looks cluttered.
+
+Redesign it professionally:
+
+[Bold] [Italic] [Underline] [Strike]
+
+[Style Dropdown]
+
+[Font Dropdown]
+
+[Size Dropdown]
+
+[Bullet List]
+[Number List]
+[Checklist]
+
+[Align Left]
+[Center]
+[Right]
+
+[Text Color]
+[Highlight Color]
+
+No duplicate controls.
+
+No repeated color circles.
+
+No UI clutter.
+
+========================
+NOTES FEATURES
+========================
+
+Verify and fix:
+
+Create Note
+Edit Note
+Delete Note
+Auto Save
+Load Saved Notes
+Persistent Storage
+
+No data loss after refresh.
+
+========================
+APPLICATION WIDE QA
+========================
+
+Test entire application:
+
+Login
+Signup
+Email Verification
+Tasks
+Calendar
+Insights
+Settings
+Notes
+
+Fix every bug found.
+
+========================
+RESPONSIVE DESIGN
+========================
+
+Make entire application fully responsive.
+
+Mobile:
+320px+
+375px+
+425px+
+
+Tablet:
+768px+
+
+Desktop:
+1024px+
+1440px+
+1920px+
+
+No overflow.
+No broken layout.
+No hidden buttons.
+
+========================
+PROFILE DROPDOWN FIX
+========================
+
+Avatar click -> Open
+
+Avatar click again -> Close
+
+Outside click -> Close
+
+ESC key -> Close
+
+Must work consistently.
+
+========================
+FINAL GOAL
+========================
+
+I do not want more features.
+
+I want a polished production-ready SaaS application.
+
+Focus on:
+
+Stability
+Performance
+Responsive Design
+UX
+Bug Fixes
+Code Quality
+
+Provide a final report:
+
+1. Bugs found
+2. Bugs fixed
+3. Files modified
+4. Remaining issues

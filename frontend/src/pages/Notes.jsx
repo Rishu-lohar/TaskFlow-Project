@@ -3,8 +3,9 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "../styles/notes.css";
 
-// ── Palette constants ──────────────────────────────────────────────────────
-const NOTE_COLORS = [
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const NOTE_LABEL_COLORS = [
   { label: "Blue",   v: "#58a6ff" },
   { label: "Green",  v: "#3fb950" },
   { label: "Red",    v: "#f85149" },
@@ -14,14 +15,15 @@ const NOTE_COLORS = [
 ];
 
 const TEXT_COLORS = [
-  { label: "White",  v: "#e6edf3" },
-  { label: "Red",    v: "#f85149" },
-  { label: "Orange", v: "#fb8f44" },
-  { label: "Yellow", v: "#e3b341" },
-  { label: "Green",  v: "#3fb950" },
-  { label: "Blue",   v: "#58a6ff" },
-  { label: "Purple", v: "#bc8cff" },
-  { label: "Pink",   v: "#f778ba" },
+  { label: "Default", v: "#e6edf3" },
+  { label: "Red",     v: "#f85149" },
+  { label: "Orange",  v: "#fb8f44" },
+  { label: "Yellow",  v: "#e3b341" },
+  { label: "Green",   v: "#3fb950" },
+  { label: "Blue",    v: "#58a6ff" },
+  { label: "Purple",  v: "#bc8cff" },
+  { label: "Pink",    v: "#f778ba" },
+  { label: "Black",   v: "#0d1117" },
 ];
 
 const HL_COLORS = [
@@ -30,30 +32,49 @@ const HL_COLORS = [
   { label: "Blue",   v: "#b5d8ff" },
   { label: "Pink",   v: "#ffb5d5" },
   { label: "Orange", v: "#ffcc88" },
+  { label: "Red",    v: "#ffaaaa" },
+  { label: "Purple", v: "#e5ccff" },
 ];
 
-const FONT_SIZES = [8, 10, 12, 14, 16, 18, 20, 24, 28, 32, 40, 48];
+const FONT_SIZES   = [8, 10, 12, 14, 16, 18, 20, 24, 28, 32, 40, 48];
+const FONT_FAMILIES = ["Poppins", "Inter", "Roboto", "Montserrat"];
+
+const STYLE_OPTIONS = [
+  { label: "Normal Text", value: "p" },
+  { label: "Title",       value: "h1" },
+  { label: "Subtitle",    value: "h2" },
+  { label: "Important",   value: "h3" },
+  { label: "Callout",     value: "blockquote" },
+  { label: "Checklist",   value: "checklist" },
+];
+
 const stripHtml = (h) => h.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
 
-// ── Component ──────────────────────────────────────────────────────────────
+// ─── Component ────────────────────────────────────────────────────────────────
+
 export default function Notes() {
-  const navigate   = useNavigate();
-  const editorRef  = useRef(null);
-  const saveTimer  = useRef(null);
-  const savedRange = useRef(null);   // snapshot of selection
+  const navigate    = useNavigate();
+  const editorRef   = useRef(null);
+  const saveTimer   = useRef(null);
+  const savedRange  = useRef(null);   // snapshot of caret/selection
 
-  const [notes,          setNotes]          = useState([]);
-  const [activeId,       setActiveId]       = useState(null);
-  const [loading,        setLoading]        = useState(true);
-  const [saving,         setSaving]         = useState(false);
-  const [mobileView,     setMobileView]     = useState("list"); // "list" | "editor"
+  const textColorBtnRef = useRef(null);
+  const hlColorBtnRef   = useRef(null);
 
+  const [notes,         setNotes]         = useState([]);
+  const [activeId,      setActiveId]      = useState(null);
+  const [loading,       setLoading]       = useState(true);
+  const [saving,        setSaving]        = useState(false);
+  const [mobileView,    setMobileView]    = useState("list"); // "list" | "editor"
+  const [colorPicker,   setColorPicker]   = useState(null);  // "text" | "hl" | null
+
+  // ─── Auth ───────────────────────────────────────────────────────────────────
   const auth = () => {
     const u = JSON.parse(localStorage.getItem("userInfo") || "{}");
     return { headers: { Authorization: `Bearer ${u.token}` } };
   };
 
-  // ── Load ───────────────────────────────────────────────────────────────
+  // ─── Load notes ─────────────────────────────────────────────────────────────
   useEffect(() => {
     const u = JSON.parse(localStorage.getItem("userInfo") || "{}");
     if (!u.token) { navigate("/login"); return; }
@@ -68,31 +89,42 @@ export default function Notes() {
 
   const activeNote = notes.find(n => n._id === activeId) ?? null;
 
-  // Sync editor HTML when active note switches
+  // Sync editor when switching notes
   useEffect(() => {
     if (editorRef.current && activeNote) {
       editorRef.current.innerHTML = activeNote.content || "";
     }
   }, [activeId]);
 
-  // ── Selection helpers ──────────────────────────────────────────────────
-  // Call this ANY time the editor might be about to lose focus
-  const saveRange = () => {
+  // Close color picker on outside click
+  useEffect(() => {
+    if (!colorPicker) return;
+    const ref = colorPicker === "text" ? textColorBtnRef : hlColorBtnRef;
+    const handler = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setColorPicker(null);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [colorPicker]);
+
+  // ─── Selection helpers ───────────────────────────────────────────────────────
+  // Save snapshot: call on editor blur (select focus change) or before opening picker
+  const saveRange = useCallback(() => {
     const sel = window.getSelection();
     if (sel && sel.rangeCount > 0)
       savedRange.current = sel.getRangeAt(0).cloneRange();
-  };
+  }, []);
 
-  // Call this before applying a format after focus was lost (select onChange, etc.)
-  const restoreRange = () => {
+  // Restore snapshot + re-focus editor (for select onChange etc.)
+  const restoreRange = useCallback(() => {
     if (!savedRange.current) return;
     editorRef.current?.focus();
     const sel = window.getSelection();
     sel?.removeAllRanges();
     sel?.addRange(savedRange.current);
-  };
+  }, []);
 
-  // ── Save ───────────────────────────────────────────────────────────────
+  // ─── Save ───────────────────────────────────────────────────────────────────
   const scheduleSave = useCallback(() => {
     clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(saveNow, 1500);
@@ -112,7 +144,7 @@ export default function Notes() {
     setSaving(false);
   };
 
-  // ── CRUD ───────────────────────────────────────────────────────────────
+  // ─── CRUD ────────────────────────────────────────────────────────────────────
   const createNote = async () => {
     try {
       const { data } = await axios.post("/api/notes", { content: "", color: "#58a6ff" }, auth());
@@ -139,52 +171,62 @@ export default function Notes() {
     try { await axios.put(`/api/notes/${activeId}`, { color }, auth()); } catch {}
   };
 
-  // ── Toolbar commands ────────────────────────────────────────────────────
+  // ─── Editor commands ─────────────────────────────────────────────────────────
   //
-  // CRITICAL RULES:
-  //   1. All <button> toolbar handlers use  onMouseDown + e.preventDefault()
-  //      → this keeps editor focus + selection intact (no reset!)
-  //   2. Do NOT call editorRef.current.focus() inside a button handler —
-  //      it collapses the selection in Chrome/Edge.
-  //   3. <select> handlers MUST call restoreRange() first because opening a
-  //      select always steals focus from the contentEditable.
+  // RULE 1: All toolbar BUTTONS must use  onMouseDown + e.preventDefault()
+  //         → keeps editor focused, selection intact, zero cursor reset.
+  // RULE 2: Never call editorRef.current.focus() inside run() — it collapses selection.
+  // RULE 3: <select> elements steal focus; use saveRange (onMouseDown) +
+  //         restoreRange (in onChange) around them.
   //
-  const run = (command, value = null) => {
-    // No focus() here — focus is kept via e.preventDefault() on the button
+  const run = useCallback((command, value = null) => {
+    // Focus is preserved by e.preventDefault() on buttons — don't call focus() here.
     document.execCommand("styleWithCSS", false, true);
     document.execCommand(command, false, value);
     scheduleSave();
-  };
+  }, [scheduleSave]);
 
-  // Used after a select change (focus was lost → must restore first)
-  const runAfterSelect = (command, value = null) => {
+  // After a select-change (focus was lost), restore selection then run command
+  const runAfterSelect = useCallback((command, value = null) => {
     restoreRange();
     document.execCommand("styleWithCSS", false, true);
     document.execCommand(command, false, value);
     scheduleSave();
-  };
+  }, [restoreRange, scheduleSave]);
 
-  const applySize = (px) => {
+  // Apply block style — includes special "checklist" case
+  const applyStyle = useCallback((value) => {
+    if (value === "checklist") {
+      restoreRange();
+      // Insert a checkbox item at the cursor
+      document.execCommand("insertHTML", false,
+        '<div class="note-check-item"><input type="checkbox" class="note-check-box" /><span class="note-check-text">\u00A0</span></div>');
+      scheduleSave();
+      return;
+    }
+    runAfterSelect("formatBlock", value);
+  }, [restoreRange, runAfterSelect, scheduleSave]);
+
+  // Apply font size in real pixels via span wrapping
+  const applySize = useCallback((px) => {
     restoreRange();
     const sel = window.getSelection();
     if (!sel || !sel.rangeCount) return;
     const range = sel.getRangeAt(0);
 
     if (range.collapsed) {
-      // No text selected — use fontSize trick so next typed text gets the size
+      // No selection: font-size trick for future typing
       document.execCommand("fontSize", false, "7");
       editorRef.current?.querySelectorAll("font[size='7']").forEach(el => {
         el.removeAttribute("size");
         el.style.fontSize = px + "px";
       });
     } else {
-      // Wrap selected text in a span with explicit px size
       const span = document.createElement("span");
       span.style.fontSize = px + "px";
       try {
         range.surroundContents(span);
       } catch {
-        // Selection crosses element boundaries — fall back to font trick
         document.execCommand("fontSize", false, "7");
         editorRef.current?.querySelectorAll("font[size='7']").forEach(el => {
           el.removeAttribute("size");
@@ -193,9 +235,36 @@ export default function Notes() {
       }
     }
     scheduleSave();
-  };
+  }, [restoreRange, scheduleSave]);
 
-  // ── Helpers ─────────────────────────────────────────────────────────────
+  // Apply font family via span wrapping
+  const applyFont = useCallback((family) => {
+    restoreRange();
+    const sel = window.getSelection();
+    if (!sel || !sel.rangeCount) return;
+    const range = sel.getRangeAt(0);
+
+    if (range.collapsed) {
+      document.execCommand("fontName", false, family);
+      editorRef.current?.querySelectorAll("font[face]").forEach(el => {
+        const span = document.createElement("span");
+        span.style.fontFamily = el.getAttribute("face");
+        while (el.firstChild) span.appendChild(el.firstChild);
+        el.parentNode.replaceChild(span, el);
+      });
+    } else {
+      const span = document.createElement("span");
+      span.style.fontFamily = family;
+      try {
+        range.surroundContents(span);
+      } catch {
+        document.execCommand("fontName", false, family);
+      }
+    }
+    scheduleSave();
+  }, [restoreRange, scheduleSave]);
+
+  // ─── Helpers ─────────────────────────────────────────────────────────────────
   const fmtTime = (iso) => {
     const d = new Date(iso);
     return d.toDateString() === new Date().toDateString()
@@ -203,40 +272,58 @@ export default function Notes() {
       : d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
   };
 
-  // ── Render ───────────────────────────────────────────────────────────────
+  // ─── Render ───────────────────────────────────────────────────────────────────
   if (loading) return (
     <div style={{ minHeight: "100vh", background: "var(--bg-main)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <span style={{ color: "var(--text-secondary)" }}><i className="bi bi-arrow-clockwise me-2" />Loading notes…</span>
+      <span style={{ color: "var(--text-secondary)" }}>
+        <i className="bi bi-arrow-clockwise me-2" />Loading notes…
+      </span>
     </div>
   );
 
   return (
     <div className="notes-page">
 
-      {/* ── TOP BAR ── */}
+      {/* ── TOP BAR ─────────────────────────────────────────────────── */}
       <div className="notes-topbar">
         <button className="notes-back-btn" onClick={() => navigate("/dashboard")}>
           <i className="bi bi-arrow-left me-2" />Dashboard
         </button>
-        <div className="notes-topbar-title">
-          <i className="bi bi-journal-text me-2" style={{ color: "var(--blue)" }} />Notes
+
+        <div className="notes-topbar-center">
+          <i className="bi bi-journal-text" style={{ color: "var(--blue)" }} />
+          <span className="notes-topbar-title">Notes</span>
+          {/* Note label color (belongs to the note card, not the text) */}
+          {activeNote && (
+            <div className="notes-label-group">
+              {NOTE_LABEL_COLORS.map(c => (
+                <button key={c.v} title={`Label: ${c.label}`}
+                  className={`notes-label-dot ${activeNote.color === c.v ? "on" : ""}`}
+                  style={{ background: c.v }}
+                  onClick={() => setLabelColor(c.v)}
+                />
+              ))}
+            </div>
+          )}
         </div>
+
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          {saving && <span style={{ color: "var(--text-muted)", fontSize: "0.73rem" }}>Saving…</span>}
+          {saving && <span className="notes-saving">Saving…</span>}
           <button className="notes-new-btn" onClick={createNote}>
             <i className="bi bi-plus-lg me-1" />New Note
           </button>
         </div>
       </div>
 
+      {/* ── LAYOUT ──────────────────────────────────────────────────── */}
       <div className="notes-layout">
 
-        {/* ── NOTE LIST ── */}
+        {/* ── SIDEBAR ── */}
         <div className={`notes-sidebar ${mobileView === "editor" ? "notes-sidebar--hidden" : ""}`}>
           {notes.length === 0 ? (
             <div className="notes-empty-list">
               <div style={{ fontSize: "2.4rem", marginBottom: "10px", opacity: 0.3 }}>📝</div>
-              <div style={{ color: "var(--text-muted)", fontSize: "0.86rem", marginBottom: "12px" }}>No notes yet</div>
+              <p style={{ color: "var(--text-muted)", fontSize: "0.86rem", margin: "0 0 12px" }}>No notes yet</p>
               <button className="notes-new-btn" onClick={createNote}>
                 <i className="bi bi-plus-lg me-1" />Create first note
               </button>
@@ -249,10 +336,10 @@ export default function Notes() {
               <div className="notes-list-bar" style={{ background: note.color }} />
               <div className="notes-list-body">
                 <div className="notes-list-title">{note.title || "Untitled Note"}</div>
-                <div className="notes-list-preview">{stripHtml(note.content).slice(0, 55) || "No content"}</div>
+                <div className="notes-list-preview">{stripHtml(note.content).slice(0, 60) || "No content"}</div>
                 <div className="notes-list-date">{fmtTime(note.updatedAt)}</div>
               </div>
-              <button className="notes-list-del" onClick={e => deleteNote(note._id, e)} title="Delete">
+              <button className="notes-list-del" onClick={e => deleteNote(note._id, e)} title="Delete note">
                 <i className="bi bi-trash" />
               </button>
             </div>
@@ -264,7 +351,9 @@ export default function Notes() {
           {!activeNote ? (
             <div className="notes-no-sel">
               <div style={{ fontSize: "3rem", marginBottom: "14px", opacity: 0.2 }}>📝</div>
-              <div style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>Select a note or create a new one</div>
+              <p style={{ color: "var(--text-muted)", fontSize: "0.9rem", margin: 0 }}>
+                Select a note or create a new one
+              </p>
               <button className="notes-new-btn" style={{ marginTop: "16px" }} onClick={createNote}>
                 <i className="bi bi-plus-lg me-1" />New Note
               </button>
@@ -276,24 +365,24 @@ export default function Notes() {
               <i className="bi bi-chevron-left me-1" />All Notes
             </button>
 
-            {/* ── TOOLBAR ── */}
+            {/* ── TOOLBAR ─────────────────────────────────────────── */}
             <div className="notes-toolbar">
 
-              {/* Bold / Italic / Underline / Strike */}
+              {/* 1. Bold / Italic / Underline / Strikethrough */}
               <div className="tb-grp">
-                <button className="tb-btn" title="Bold"
+                <button className="tb-btn" title="Bold (Ctrl+B)"
                   onMouseDown={e => { e.preventDefault(); run("bold"); }}>
                   <b>B</b>
                 </button>
-                <button className="tb-btn tb-it" title="Italic"
+                <button className="tb-btn tb-i" title="Italic (Ctrl+I)"
                   onMouseDown={e => { e.preventDefault(); run("italic"); }}>
                   <i>I</i>
                 </button>
-                <button className="tb-btn tb-un" title="Underline"
+                <button className="tb-btn tb-u" title="Underline (Ctrl+U)"
                   onMouseDown={e => { e.preventDefault(); run("underline"); }}>
                   <u>U</u>
                 </button>
-                <button className="tb-btn tb-st" title="Strikethrough"
+                <button className="tb-btn tb-s" title="Strikethrough"
                   onMouseDown={e => { e.preventDefault(); run("strikeThrough"); }}>
                   <s>S</s>
                 </button>
@@ -301,25 +390,36 @@ export default function Notes() {
 
               <span className="tb-sep" />
 
-              {/* Style dropdown */}
-              <select className="tb-sel" title="Text style"
+              {/* 2. Style (block format) */}
+              <select className="tb-sel tb-sel-wide" title="Text style"
                 onMouseDown={saveRange}
                 onChange={e => {
                   if (!e.target.value) return;
-                  runAfterSelect("formatBlock", e.target.value);
+                  applyStyle(e.target.value);
                   e.target.value = "";
                 }}>
                 <option value="">Style</option>
-                <option value="p">Normal</option>
-                <option value="h1">Heading 1</option>
-                <option value="h2">Heading 2</option>
-                <option value="h3">Heading 3</option>
-                <option value="blockquote">Quote</option>
-                <option value="pre">Code</option>
+                {STYLE_OPTIONS.map(o => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
+                ))}
               </select>
 
-              {/* Size dropdown */}
-              <select className="tb-sel" title="Font size"
+              {/* 3. Font family */}
+              <select className="tb-sel tb-sel-font" title="Font family"
+                onMouseDown={saveRange}
+                onChange={e => {
+                  if (!e.target.value) return;
+                  applyFont(e.target.value);
+                  e.target.value = "";
+                }}>
+                <option value="">Font</option>
+                {FONT_FAMILIES.map(f => (
+                  <option key={f} value={f} style={{ fontFamily: f }}>{f}</option>
+                ))}
+              </select>
+
+              {/* 4. Font size */}
+              <select className="tb-sel tb-sel-size" title="Font size"
                 onMouseDown={saveRange}
                 onChange={e => {
                   const px = Number(e.target.value);
@@ -333,7 +433,7 @@ export default function Notes() {
 
               <span className="tb-sep" />
 
-              {/* Lists */}
+              {/* 5. List controls */}
               <div className="tb-grp">
                 <button className="tb-btn" title="Bullet list"
                   onMouseDown={e => { e.preventDefault(); run("insertUnorderedList"); }}>
@@ -343,13 +443,21 @@ export default function Notes() {
                   onMouseDown={e => { e.preventDefault(); run("insertOrderedList"); }}>
                   <i className="bi bi-list-ol" />
                 </button>
+                <button className="tb-btn" title="Checklist"
+                  onMouseDown={e => {
+                    e.preventDefault();
+                    run("insertHTML",
+                      '<div class="note-check-item"><input type="checkbox" class="note-check-box" /><span class="note-check-text">\u00A0</span></div>');
+                  }}>
+                  <i className="bi bi-check2-square" />
+                </button>
               </div>
 
               <span className="tb-sep" />
 
-              {/* Alignment */}
+              {/* 6. Alignment */}
               <div className="tb-grp">
-                <button className="tb-btn" title="Left"
+                <button className="tb-btn" title="Align left"
                   onMouseDown={e => { e.preventDefault(); run("justifyLeft"); }}>
                   <i className="bi bi-text-left" />
                 </button>
@@ -357,7 +465,7 @@ export default function Notes() {
                   onMouseDown={e => { e.preventDefault(); run("justifyCenter"); }}>
                   <i className="bi bi-text-center" />
                 </button>
-                <button className="tb-btn" title="Right"
+                <button className="tb-btn" title="Align right"
                   onMouseDown={e => { e.preventDefault(); run("justifyRight"); }}>
                   <i className="bi bi-text-right" />
                 </button>
@@ -365,56 +473,84 @@ export default function Notes() {
 
               <span className="tb-sep" />
 
-              {/* Text color swatches */}
-              <div className="tb-grp">
-                <span className="tb-label">A</span>
-                {TEXT_COLORS.map(c => (
-                  <button key={c.v} title={`Text color: ${c.label}`}
-                    className="tb-swatch"
-                    style={{ background: c.v }}
-                    onMouseDown={e => { e.preventDefault(); run("foreColor", c.v); }}
-                  />
-                ))}
+              {/* 7. Text color picker */}
+              <div className="tb-color-picker" ref={textColorBtnRef}>
+                <button className="tb-btn tb-color-trigger" title="Text color"
+                  onMouseDown={e => {
+                    e.preventDefault();
+                    saveRange();
+                    setColorPicker(p => p === "text" ? null : "text");
+                  }}>
+                  <span className="tb-color-icon">
+                    <i className="bi bi-fonts" />
+                    <span className="tb-color-bar" style={{ background: "#e6edf3" }} />
+                  </span>
+                </button>
+                {colorPicker === "text" && (
+                  <div className="tb-color-popup" onMouseDown={e => e.preventDefault()}>
+                    <div className="tb-color-grid">
+                      {TEXT_COLORS.map(c => (
+                        <button key={c.v}
+                          className="tb-color-swatch"
+                          style={{ background: c.v }}
+                          title={c.label}
+                          onMouseDown={e => {
+                            e.preventDefault();
+                            run("foreColor", c.v);
+                            setColorPicker(null);
+                          }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* 8. Highlight picker */}
+              <div className="tb-color-picker" ref={hlColorBtnRef}>
+                <button className="tb-btn tb-color-trigger" title="Highlight color"
+                  onMouseDown={e => {
+                    e.preventDefault();
+                    saveRange();
+                    setColorPicker(p => p === "hl" ? null : "hl");
+                  }}>
+                  <span className="tb-color-icon">
+                    <i className="bi bi-highlighter" />
+                    <span className="tb-color-bar" style={{ background: "#ffe566" }} />
+                  </span>
+                </button>
+                {colorPicker === "hl" && (
+                  <div className="tb-color-popup" onMouseDown={e => e.preventDefault()}>
+                    <div className="tb-color-grid">
+                      {HL_COLORS.map(c => (
+                        <button key={c.v}
+                          className="tb-color-swatch"
+                          style={{ background: c.v }}
+                          title={c.label}
+                          onMouseDown={e => {
+                            e.preventDefault();
+                            run("hiliteColor", c.v);
+                            setColorPicker(null);
+                          }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               <span className="tb-sep" />
 
-              {/* Highlight color swatches */}
-              <div className="tb-grp">
-                <span className="tb-label">H</span>
-                {HL_COLORS.map(c => (
-                  <button key={c.v} title={`Highlight: ${c.label}`}
-                    className="tb-swatch"
-                    style={{ background: c.v }}
-                    onMouseDown={e => { e.preventDefault(); run("hiliteColor", c.v); }}
-                  />
-                ))}
-              </div>
-
-              <span className="tb-sep" />
-
-              {/* Note label colors */}
-              <div className="tb-grp">
-                {NOTE_COLORS.map(c => (
-                  <button key={c.v} title={`Label: ${c.label}`}
-                    className={`tb-dot ${activeNote.color === c.v ? "on" : ""}`}
-                    style={{ background: c.v }}
-                    onMouseDown={e => { e.preventDefault(); setLabelColor(c.v); }}
-                  />
-                ))}
-              </div>
-
-              <span className="tb-sep" />
-
-              {/* Clear formatting */}
+              {/* 9. Clear formatting */}
               <button className="tb-btn" title="Clear all formatting"
                 onMouseDown={e => { e.preventDefault(); run("removeFormat"); }}>
                 <i className="bi bi-eraser" />
               </button>
 
             </div>
+            {/* ── END TOOLBAR ── */}
 
-            {/* ── CONTENT EDITABLE ── */}
+            {/* ── EDITOR ── */}
             <div
               ref={editorRef}
               className="notes-editor"
