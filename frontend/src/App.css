@@ -39,7 +39,14 @@
 html, body, #root {
   height: 100%;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+  /* Prevent the browser's I-beam text cursor from showing over regular text */
+  cursor: default;
 }
+
+/* Only actual interactive / text elements get special cursors */
+input, textarea, [contenteditable="true"] { cursor: text; }
+button, a, select, [role="button"], label { cursor: pointer; }
+[disabled], [aria-disabled="true"] { cursor: not-allowed; }
 
 /* ============ CARD ============ */
 .card {
