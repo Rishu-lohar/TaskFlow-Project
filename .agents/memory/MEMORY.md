@@ -1,0 +1,1 @@
+- [TaskFlow project overview](taskflow-overview.md) — full-stack task manager; key quirks, architecture, and decisions made during build

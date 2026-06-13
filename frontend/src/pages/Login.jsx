@@ -14,7 +14,6 @@ function Login() {
     e.preventDefault();
     setLoading(true);
     setError("");
-
     try {
       const { data } = await axios.post("/api/auth/login", { email, password });
       localStorage.setItem("userInfo", JSON.stringify(data));
@@ -54,30 +53,31 @@ function Login() {
               <Form.Group className="mb-3">
                 <Form.Label>Email Address</Form.Label>
                 <Form.Control
-                  type="email"
-                  placeholder="Enter your email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
+                  type="email" placeholder="Enter your email"
+                  value={email} onChange={e => setEmail(e.target.value)} required
                 />
               </Form.Group>
 
-              <Form.Group className="mb-4">
+              <Form.Group className="mb-2">
                 <Form.Label>Password</Form.Label>
                 <Form.Control
-                  type="password"
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
+                  type="password" placeholder="Enter your password"
+                  value={password} onChange={e => setPassword(e.target.value)} required
                 />
               </Form.Group>
+
+              {/* Forgot password link */}
+              <div style={{ textAlign: "right", marginBottom: "18px" }}>
+                <Link to="/forgot-password"
+                  style={{ color: "var(--blue)", fontSize: "0.83rem", textDecoration: "none", fontWeight: 500 }}>
+                  Forgot password?
+                </Link>
+              </div>
 
               <Button type="submit" variant="primary" className="w-100" disabled={loading}>
                 {loading
                   ? <><i className="bi bi-arrow-clockwise me-2"></i>Logging in...</>
-                  : <><i className="bi bi-box-arrow-in-right me-2"></i>Login</>
-                }
+                  : <><i className="bi bi-box-arrow-in-right me-2"></i>Login</>}
               </Button>
             </Form>
 

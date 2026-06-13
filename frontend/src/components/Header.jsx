@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Container } from "react-bootstrap";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 import ProfileDropdown from "./ProfileDropdown";
 import SettingsModal from "./SettingsModal";
@@ -38,6 +38,7 @@ const applyTheme = (dark) => {
 
 const Header = ({ onTasksCleared }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -47,9 +48,7 @@ const Header = ({ onTasksCleared }) => {
     return saved !== null ? saved === "dark" : true;
   });
 
-  useEffect(() => {
-    applyTheme(isDark);
-  }, [isDark]);
+  useEffect(() => { applyTheme(isDark); }, [isDark]);
 
   const handleLogout = () => {
     localStorage.removeItem("userInfo");
@@ -64,17 +63,17 @@ const Header = ({ onTasksCleared }) => {
     });
   };
 
+  const isNotes = location.pathname === "/notes";
+
   return (
     <>
       <header className="taskflow-header">
         <Container>
           <div className="header-content">
 
-            {/* LEFT — USER INFO */}
-            <div
-              className="header-user"
-              onClick={(e) => { e.stopPropagation(); setDropdownOpen(prev => !prev); }}
-            >
+            {/* LEFT — user info */}
+            <div className="header-user"
+              onClick={e => { e.stopPropagation(); setDropdownOpen(p => !p); }}>
               <div className="user-avatar-small">
                 {userInfo?.name ? userInfo.name.charAt(0).toUpperCase() : "U"}
               </div>
@@ -93,16 +92,30 @@ const Header = ({ onTasksCleared }) => {
               />
             </div>
 
-            {/* CENTER — LOGO */}
+            {/* CENTER — logo + nav pills */}
             <div className="header-logo">
-              <h1><i className="bi bi-check2-circle me-2"></i>TaskFlow</h1>
-              <p><i className="bi bi-lightning-fill me-1"></i>Smart Task Manager</p>
+              <h1><i className="bi bi-check2-circle me-2" />TaskFlow</h1>
+              {/* Navigation pills */}
+              <div className="header-nav">
+                <button
+                  className={`header-nav-pill ${!isNotes ? "active" : ""}`}
+                  onClick={() => navigate("/dashboard")}
+                >
+                  <i className="bi bi-kanban me-1" />Tasks
+                </button>
+                <button
+                  className={`header-nav-pill ${isNotes ? "active" : ""}`}
+                  onClick={() => navigate("/notes")}
+                >
+                  <i className="bi bi-journal-text me-1" />Notes
+                </button>
+              </div>
             </div>
 
-            {/* RIGHT — LOGOUT */}
+            {/* RIGHT — logout */}
             <div className="header-actions">
               <button className="logout-btn" onClick={handleLogout}>
-                <i className="bi bi-box-arrow-right me-2"></i>
+                <i className="bi bi-box-arrow-right me-2" />
                 <span className="logout-text">Logout</span>
               </button>
             </div>

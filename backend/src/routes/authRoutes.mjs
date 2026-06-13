@@ -4,6 +4,8 @@ import {
   loginUser,
   verifyEmail,
   resendOtp,
+  forgotPassword,
+  resetPassword,
   changePassword,
   deleteAccount,
 } from "../controllers/authController.mjs";
@@ -15,6 +17,8 @@ router.post("/register", registerUser);
 router.post("/login", loginUser);
 router.post("/verify-email", verifyEmail);
 router.post("/resend-otp", resendOtp);
+router.post("/forgot-password", forgotPassword);
+router.post("/reset-password", resetPassword);
 router.put("/change-password", protect, changePassword);
 router.delete("/delete-account", protect, deleteAccount);
 
