@@ -1,0 +1,150 @@
+STOP ADDING FEATURES.
+
+The Notes section has become over-engineered and unstable.
+
+I do NOT want more functionality.
+
+I want a simple, reliable, production-ready notes editor.
+
+REMOVE anything that is not fully working.
+
+========================
+SIMPLIFY THE EDITOR
+===================
+
+Keep ONLY:
+
+* Bold
+* Italic
+* Underline
+* Bullet List
+* Numbered List
+* Text Color
+
+Remove:
+
+* Font dropdown
+* Style dropdown
+* Size dropdown
+* Random color circles near Notes title
+* Highlight colors
+* Extra formatting controls
+* Experimental editor features
+
+If a feature is not 100% stable, remove it.
+
+========================
+EDITOR REQUIREMENTS
+===================
+
+The editor must behave like a normal text editor.
+
+Verify:
+
+1. Cursor stays exactly where user clicks.
+
+2. Typing always happens at cursor position.
+
+3. Text selection works correctly.
+
+4. Bold works correctly.
+
+5. Italic works correctly.
+
+6. Underline works correctly.
+
+7. Text color changes correctly.
+
+8. Bullet lists work correctly.
+
+9. Numbered lists work correctly.
+
+10. Formatting persists after save.
+
+11. Formatting persists after refresh.
+
+12. Notes save correctly to database.
+
+13. Notes load correctly after reopening.
+
+14. Long notes wrap correctly.
+
+15. No text overflow.
+
+========================
+UI CLEANUP
+==========
+
+Make the Notes page clean and minimal.
+
+Remove all unnecessary visual elements.
+
+The toolbar should contain ONLY:
+
+[B]
+[I]
+[U]
+[Bullet List]
+[Numbered List]
+[Text Color]
+
+Nothing else.
+
+No duplicate buttons.
+
+No decorative color dots.
+
+No clutter.
+
+========================
+RESPONSIVE DESIGN
+=================
+
+Verify Notes page on:
+
+Mobile
+Tablet
+Desktop
+
+No horizontal scrolling.
+
+No broken layout.
+
+========================
+APPLICATION STABILITY
+=====================
+
+Run a full test of:
+
+Login
+Signup
+Email Verification
+Tasks
+Calendar
+Insights
+Settings
+Notes
+
+Fix only bugs.
+
+Do NOT add any new features.
+
+========================
+FINAL GOAL
+==========
+
+I prefer a simple editor that works perfectly over an advanced editor that is buggy.
+
+Prioritize:
+
+Stability
+Reliability
+Clean UI
+Working functionality
+
+After completion provide:
+
+1. Bugs found
+2. Bugs fixed
+3. Files modified
+4. Any remaining issues
