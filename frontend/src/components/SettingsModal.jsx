@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Form, Button } from "react-bootstrap";
-import axios from "axios";
+import api from "../api";
 import "../styles/settings.css";
 
 const SettingsModal = ({ settingsOpen, setSettingsOpen, userInfo, onTasksCleared }) => {
@@ -15,14 +15,29 @@ const SettingsModal = ({ settingsOpen, setSettingsOpen, userInfo, onTasksCleared
   const token = userInfo?.token;
   const authHeader = { headers: { Authorization: `Bearer ${token}` } };
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     setSettingsOpen(false);
     setActiveSection(null);
     setPwMsg({ text: "", type: "" });
     setCurrentPassword("");
     setNewPassword("");
     setConfirmPassword("");
-  };
+  }, [setSettingsOpen]);
+
+  useEffect(() => {
+    if (!settingsOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    const onKeyDown = (e) => {
+      if (e.key === "Escape") handleClose();
+    };
+
+    document.body.style.overflow = "hidden";
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [handleClose, settingsOpen]);
 
   const handleChangePassword = async (e) => {
     e.preventDefault();
@@ -39,7 +54,7 @@ const SettingsModal = ({ settingsOpen, setSettingsOpen, userInfo, onTasksCleared
 
     setPwLoading(true);
     try {
-      await axios.put("/api/auth/change-password", { currentPassword, newPassword }, authHeader);
+      await api.put("/api/auth/change-password", { currentPassword, newPassword }, authHeader);
       setPwMsg({ text: "Password updated successfully!", type: "success" });
       setCurrentPassword("");
       setNewPassword("");
@@ -57,8 +72,8 @@ const SettingsModal = ({ settingsOpen, setSettingsOpen, userInfo, onTasksCleared
   const handleDeleteTasks = async () => {
     setDeleteLoading(true);
     try {
-      const { data: tasks } = await axios.get("/api/tasks", authHeader);
-      await Promise.all(tasks.map((task) => axios.delete(`/api/tasks/${task._id}`, authHeader)));
+      const { data: tasks } = await api.get("/api/tasks", authHeader);
+      await Promise.all(tasks.map((task) => api.delete(`/api/tasks/${task._id}`, authHeader)));
       if (onTasksCleared) onTasksCleared();
       handleClose();
     } catch (error) {
@@ -71,7 +86,7 @@ const SettingsModal = ({ settingsOpen, setSettingsOpen, userInfo, onTasksCleared
   const handleDeleteAccount = async () => {
     setDeleteLoading(true);
     try {
-      await axios.delete("/api/auth/delete-account", authHeader);
+      await api.delete("/api/auth/delete-account", authHeader);
       localStorage.removeItem("userInfo");
       window.location.href = "/signup";
     } catch (error) {

@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Card, Button } from "react-bootstrap";
-import axios from "axios";
+import api from "../api";
 
 function VerifyEmail() {
   const navigate = useNavigate();
@@ -66,7 +66,7 @@ function VerifyEmail() {
     setLoading(true);
     setError("");
     try {
-      const { data } = await axios.post("/api/auth/verify-email", { email, otp: code });
+      const { data } = await api.post("/api/auth/verify-email", { email, otp: code });
       localStorage.setItem("userInfo", JSON.stringify(data));
       setSuccess("Email verified! Redirecting...");
       setTimeout(() => navigate("/dashboard"), 1200);
@@ -84,7 +84,7 @@ function VerifyEmail() {
     setError("");
     setSuccess("");
     try {
-      await axios.post("/api/auth/resend-otp", { email });
+      await api.post("/api/auth/resend-otp", { email });
       setSuccess("A new code has been sent to your email.");
       setOtp(["", "", "", "", "", ""]);
       setCountdown(60);

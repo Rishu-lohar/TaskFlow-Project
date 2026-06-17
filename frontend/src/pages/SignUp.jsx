@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Card, Form, Button } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../api";
 
 function SignUp() {
   const navigate = useNavigate();
@@ -16,7 +16,7 @@ function SignUp() {
     setLoading(true);
     setError("");
     try {
-      const { data } = await axios.post("/api/auth/register", { name, email, password });
+      const { data } = await api.post("/api/auth/register", { name, email, password });
       if (data.token) {
         // Email not configured — user was auto-verified, log straight in
         localStorage.setItem("userInfo", JSON.stringify(data));

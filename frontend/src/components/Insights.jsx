@@ -1,4 +1,3 @@
-import React from 'react';
 import { Card } from 'react-bootstrap';
 
 const toDateStr = (d) => d ? d.split('T')[0] : null;

@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../api";
 import "../styles/notes.css";
 
 // ─── Text color palette ────────────────────────────────────────────────────
@@ -15,6 +15,19 @@ const TEXT_COLORS = [
   { label: "Pink",    v: "#f778ba" },
 ];
 
+const TEXT_SIZES = [
+  { label: "Small", v: "0.9rem" },
+  { label: "Normal", v: "1rem" },
+  { label: "Large", v: "1.2rem" },
+  { label: "Huge", v: "1.45rem" },
+];
+
+const TEXT_STYLES = [
+  { label: "Sans", v: "inherit" },
+  { label: "Serif", v: "Georgia, serif" },
+  { label: "Mono", v: "'SFMono-Regular', Consolas, monospace" },
+];
+
 const stripHtml = (h) => h.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
 
 // ─── Component ────────────────────────────────────────────────────────────
@@ -24,6 +37,8 @@ export default function Notes() {
   const saveTimer  = useRef(null);
   const savedRange = useRef(null);    // snapshot of caret / selection
   const colorBtnRef = useRef(null);   // wrapper for outside-click detection
+  const sizeBtnRef = useRef(null);
+  const styleBtnRef = useRef(null);
 
   const [notes,       setNotes]       = useState([]);
   const [activeId,    setActiveId]    = useState(null);
@@ -31,25 +46,27 @@ export default function Notes() {
   const [saving,      setSaving]      = useState(false);
   const [mobileView,  setMobileView]  = useState("list"); // "list" | "editor"
   const [colorOpen,   setColorOpen]   = useState(false);
+  const [sizeOpen,    setSizeOpen]    = useState(false);
+  const [styleOpen,   setStyleOpen]   = useState(false);
 
   // ── Auth header ──────────────────────────────────────────────────────────
-  const auth = () => {
+  const auth = useCallback(() => {
     const u = JSON.parse(localStorage.getItem("userInfo") || "{}");
     return { headers: { Authorization: `Bearer ${u.token}` } };
-  };
+  }, []);
 
   // ── Load notes ───────────────────────────────────────────────────────────
   useEffect(() => {
     const u = JSON.parse(localStorage.getItem("userInfo") || "{}");
     if (!u.token) { navigate("/login"); return; }
-    axios.get("/api/notes", auth())
+    api.get("/api/notes", auth())
       .then(({ data }) => {
         setNotes(data);
         if (data.length) setActiveId(data[0]._id);
       })
       .catch(() => navigate("/login"))
       .finally(() => setLoading(false));
-  }, []);
+  }, [auth, navigate]);
 
   const activeNote = notes.find(n => n._id === activeId) ?? null;
 
@@ -58,76 +75,98 @@ export default function Notes() {
     if (editorRef.current && activeNote) {
       editorRef.current.innerHTML = activeNote.content || "";
     }
+  // Only sync on note switches; syncing after saves rewrites the editor DOM and moves the caret.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeId]);
 
-  // Close color popup on outside click
+  // Close toolbar popups on outside click
   useEffect(() => {
-    if (!colorOpen) return;
+    if (!colorOpen && !sizeOpen && !styleOpen) return;
     const handler = (e) => {
       if (colorBtnRef.current && !colorBtnRef.current.contains(e.target))
         setColorOpen(false);
+      if (sizeBtnRef.current && !sizeBtnRef.current.contains(e.target))
+        setSizeOpen(false);
+      if (styleBtnRef.current && !styleBtnRef.current.contains(e.target))
+        setStyleOpen(false);
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
-  }, [colorOpen]);
+  }, [colorOpen, sizeOpen, styleOpen]);
 
   // ── Selection helpers ────────────────────────────────────────────────────
   // Save the current selection. Called on editor blur and before opening color picker.
   const saveRange = useCallback(() => {
     const sel = window.getSelection();
-    if (sel && sel.rangeCount > 0)
-      savedRange.current = sel.getRangeAt(0).cloneRange();
+    if (!sel || sel.rangeCount === 0 || !editorRef.current) return;
+    const range = sel.getRangeAt(0);
+    if (!editorRef.current.contains(range.commonAncestorContainer)) return;
+    savedRange.current = range.cloneRange();
   }, []);
 
   // Restore the saved selection back into the editor.
   const restoreRange = useCallback(() => {
     if (!savedRange.current) return;
-    editorRef.current?.focus();
     const sel = window.getSelection();
     sel?.removeAllRanges();
     sel?.addRange(savedRange.current);
   }, []);
 
   // ── Save ─────────────────────────────────────────────────────────────────
-  const scheduleSave = useCallback(() => {
-    clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(saveNow, 1500);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeId]);
-
-  const saveNow = async () => {
+  const saveNow = useCallback(async () => {
     if (!activeId || !editorRef.current) return;
     setSaving(true);
     try {
-      const { data } = await axios.put(
+      const { data } = await api.put(
         `/api/notes/${activeId}`,
         { content: editorRef.current.innerHTML },
         auth()
       );
       setNotes(p => p.map(n => n._id === activeId ? { ...n, ...data } : n));
-    } catch {}
+    } catch (error) {
+      console.error("Failed to save note", error);
+    }
     setSaving(false);
-  };
+  }, [activeId, auth]);
+
+  const scheduleSave = useCallback(() => {
+    clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(saveNow, 1500);
+  }, [saveNow]);
 
   // ── CRUD ─────────────────────────────────────────────────────────────────
   const createNote = async () => {
     try {
-      const { data } = await axios.post("/api/notes", { content: "" }, auth());
+      const { data } = await api.post("/api/notes", { content: "" }, auth());
       setNotes(p => [data, ...p]);
       setActiveId(data._id);
       setMobileView("editor");
       setTimeout(() => editorRef.current?.focus(), 80);
-    } catch {}
+    } catch (error) {
+      console.error("Failed to create note", error);
+    }
   };
 
   const deleteNote = async (id, e) => {
     e.stopPropagation();
     try {
-      await axios.delete(`/api/notes/${id}`, auth());
+      await api.delete(`/api/notes/${id}`, auth());
       const rest = notes.filter(n => n._id !== id);
       setNotes(rest);
       if (activeId === id) { setActiveId(rest[0]?._id ?? null); setMobileView("list"); }
-    } catch {}
+    } catch (error) {
+      console.error("Failed to delete note", error);
+    }
+  };
+
+  const selectNote = (id) => {
+    if (activeId && activeId !== id) saveNow();
+    savedRange.current = null;
+    setColorOpen(false);
+    setSizeOpen(false);
+    setStyleOpen(false);
+    setActiveId(id);
+    setMobileView("editor");
   };
 
   // ── Toolbar commands ──────────────────────────────────────────────────────
@@ -138,11 +177,41 @@ export default function Notes() {
   //   2. NEVER call editorRef.current.focus() inside run() or any toolbar handler
   //      → calling focus() on a contentEditable collapses the selection in Chrome/Edge.
   //
-  const run = useCallback((cmd, value = null) => {
+  const run = useCallback((cmd, value = null, requiresSelection = false) => {
+    restoreRange();
+    const sel = window.getSelection();
+    if (requiresSelection && (!sel || sel.rangeCount === 0 || sel.isCollapsed)) return;
     document.execCommand("styleWithCSS", false, true);
     document.execCommand(cmd, false, value);
+    saveRange();
     scheduleSave();
-  }, [scheduleSave]);
+  }, [restoreRange, saveRange, scheduleSave]);
+
+  const applyInlineStyle = useCallback((style) => {
+    restoreRange();
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0 || sel.isCollapsed || !editorRef.current) return;
+
+    const range = sel.getRangeAt(0);
+    if (!editorRef.current.contains(range.commonAncestorContainer)) return;
+
+    const span = document.createElement("span");
+    Object.assign(span.style, style);
+    span.appendChild(range.extractContents());
+    range.insertNode(span);
+
+    const nextRange = document.createRange();
+    nextRange.selectNodeContents(span);
+    sel.removeAllRanges();
+    sel.addRange(nextRange);
+    savedRange.current = nextRange.cloneRange();
+    scheduleSave();
+  }, [restoreRange, scheduleSave]);
+
+  const handleEditorInput = useCallback(() => {
+    saveRange();
+    scheduleSave();
+  }, [saveRange, scheduleSave]);
 
   // ── Helpers ───────────────────────────────────────────────────────────────
   const fmtTime = (iso) => {
@@ -197,7 +266,7 @@ export default function Notes() {
           ) : notes.map(note => (
             <div key={note._id}
               className={`notes-list-item ${activeId === note._id ? "active" : ""}`}
-              onClick={() => { setActiveId(note._id); setMobileView("editor"); }}>
+              onClick={() => selectNote(note._id)}>
               <div className="notes-list-body">
                 <div className="notes-list-title">{note.title || "Untitled Note"}</div>
                 <div className="notes-list-preview">{stripHtml(note.content).slice(0, 60) || "No content"}</div>
@@ -231,17 +300,17 @@ export default function Notes() {
             <div className="notes-toolbar">
 
               {/* Bold */}
-              <button className="tb-btn" title="Bold" onMouseDown={e => { e.preventDefault(); run("bold"); }}>
+              <button className="tb-btn" title="Bold" onMouseDown={e => { e.preventDefault(); run("bold", null, true); }}>
                 <strong>B</strong>
               </button>
 
               {/* Italic */}
-              <button className="tb-btn tb-italic" title="Italic" onMouseDown={e => { e.preventDefault(); run("italic"); }}>
+              <button className="tb-btn tb-italic" title="Italic" onMouseDown={e => { e.preventDefault(); run("italic", null, true); }}>
                 <em>I</em>
               </button>
 
               {/* Underline */}
-              <button className="tb-btn tb-underline" title="Underline" onMouseDown={e => { e.preventDefault(); run("underline"); }}>
+              <button className="tb-btn tb-underline" title="Underline" onMouseDown={e => { e.preventDefault(); run("underline", null, true); }}>
                 <span style={{ textDecoration: "underline" }}>U</span>
               </button>
 
@@ -259,6 +328,65 @@ export default function Notes() {
 
               <span className="tb-sep" />
 
+              {/* Text size */}
+              <div className="tb-menu-wrap" ref={sizeBtnRef}>
+                <button className="tb-btn tb-menu-btn" title="Text size"
+                  onMouseDown={e => {
+                    e.preventDefault();
+                    saveRange();
+                    setSizeOpen(p => !p);
+                    setColorOpen(false);
+                    setStyleOpen(false);
+                  }}>
+                  <i className="bi bi-textarea-t" />
+                </button>
+                {sizeOpen && (
+                  <div className="tb-menu-popup" onMouseDown={e => e.preventDefault()}>
+                    {TEXT_SIZES.map(size => (
+                      <button key={size.v} className="tb-menu-item"
+                        onMouseDown={e => {
+                          e.preventDefault();
+                          applyInlineStyle({ fontSize: size.v });
+                          setSizeOpen(false);
+                        }}>
+                        {size.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Text style */}
+              <div className="tb-menu-wrap" ref={styleBtnRef}>
+                <button className="tb-btn tb-menu-btn" title="Text style"
+                  onMouseDown={e => {
+                    e.preventDefault();
+                    saveRange();
+                    setStyleOpen(p => !p);
+                    setColorOpen(false);
+                    setSizeOpen(false);
+                  }}>
+                  <i className="bi bi-type" />
+                </button>
+                {styleOpen && (
+                  <div className="tb-menu-popup" onMouseDown={e => e.preventDefault()}>
+                    {TEXT_STYLES.map(style => (
+                      <button key={style.v} className="tb-menu-item"
+                        style={{ fontFamily: style.v }}
+                        onMouseDown={e => {
+                          e.preventDefault();
+                          applyInlineStyle({ fontFamily: style.v });
+                          setStyleOpen(false);
+                        }}>
+                        {style.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <span className="tb-sep" />
+
               {/* Text color popup */}
               <div className="tb-color-wrap" ref={colorBtnRef}>
                 <button className="tb-btn tb-color-btn" title="Text color"
@@ -266,6 +394,8 @@ export default function Notes() {
                     e.preventDefault();
                     saveRange();
                     setColorOpen(p => !p);
+                    setSizeOpen(false);
+                    setStyleOpen(false);
                   }}>
                   <i className="bi bi-fonts" />
                   <span className="tb-color-underbar" />
@@ -277,8 +407,7 @@ export default function Notes() {
                         style={{ background: c.v }}
                         onMouseDown={e => {
                           e.preventDefault();
-                          restoreRange();
-                          run("foreColor", c.v);
+                          applyInlineStyle({ color: c.v });
                           setColorOpen(false);
                         }}
                       />
@@ -296,7 +425,9 @@ export default function Notes() {
               className="notes-editor"
               contentEditable
               suppressContentEditableWarning
-              onInput={scheduleSave}
+              onInput={handleEditorInput}
+              onKeyUp={saveRange}
+              onMouseUp={saveRange}
               onBlur={saveRange}
               data-placeholder="Start writing your note…"
             />

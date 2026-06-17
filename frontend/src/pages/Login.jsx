@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Card, Form, Button } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../api";
 
 function Login() {
   const navigate = useNavigate();
@@ -15,7 +15,7 @@ function Login() {
     setLoading(true);
     setError("");
     try {
-      const { data } = await axios.post("/api/auth/login", { email, password });
+      const { data } = await api.post("/api/auth/login", { email, password });
       localStorage.setItem("userInfo", JSON.stringify(data));
       navigate("/dashboard");
     } catch (err) {

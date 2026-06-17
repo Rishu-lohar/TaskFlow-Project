@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Container } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../api";
 
 import Header from "../components/Header";
 import TaskForm from "../components/TaskForm";
@@ -16,23 +16,14 @@ function Home() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [loading, setLoading] = useState(true);
 
-  const getAuthHeader = () => {
+  const getAuthHeader = useCallback(() => {
     const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
     return { headers: { Authorization: `Bearer ${userInfo.token}` } };
-  };
-
-  useEffect(() => {
-    const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
-    if (!userInfo.token) {
-      navigate("/login");
-      return;
-    }
-    fetchTasks();
   }, []);
 
-  const fetchTasks = async () => {
+  const fetchTasks = useCallback(async () => {
     try {
-      const { data } = await axios.get("/api/tasks", getAuthHeader());
+      const { data } = await api.get("/api/tasks", getAuthHeader());
       setTasks(data);
     } catch (error) {
       if (error.response?.status === 401) {
@@ -42,11 +33,21 @@ function Home() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [getAuthHeader, navigate]);
+
+  useEffect(() => {
+    const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
+    if (!userInfo.token) {
+      navigate("/login");
+      return;
+    }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchTasks();
+  }, [fetchTasks, navigate]);
 
   const addTask = async (taskData) => {
     try {
-      const { data } = await axios.post("/api/tasks", taskData, getAuthHeader());
+      const { data } = await api.post("/api/tasks", taskData, getAuthHeader());
       setTasks((prev) => [data, ...prev]);
     } catch (error) {
       alert(error.response?.data?.message || "Failed to add task");
@@ -55,7 +56,7 @@ function Home() {
 
   const deleteTask = async (id) => {
     try {
-      await axios.delete(`/api/tasks/${id}`, getAuthHeader());
+      await api.delete(`/api/tasks/${id}`, getAuthHeader());
       setTasks((prev) => prev.filter((task) => task._id !== id));
     } catch (error) {
       alert(error.response?.data?.message || "Failed to delete task");
@@ -64,7 +65,7 @@ function Home() {
 
   const toggleTask = async (id) => {
     try {
-      const { data } = await axios.put(`/api/tasks/${id}`, {}, getAuthHeader());
+      const { data } = await api.put(`/api/tasks/${id}`, {}, getAuthHeader());
       setTasks((prev) => prev.map((task) => (task._id === id ? data : task)));
     } catch (error) {
       alert(error.response?.data?.message || "Failed to update task");

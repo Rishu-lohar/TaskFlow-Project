@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import "../styles/dropdown.css";
 
 const ProfileDropdown = ({
@@ -12,6 +12,30 @@ const ProfileDropdown = ({
   triggerRef,          // ref to the avatar element in Header (excluded from outside-click)
 }) => {
   const dropdownRef = useRef(null);
+  const [position, setPosition] = useState({ top: 0, left: 0 });
+
+  useEffect(() => {
+    if (!dropdownOpen || !triggerRef?.current) return;
+
+    const updatePosition = () => {
+      const trigger = triggerRef.current.getBoundingClientRect();
+      const width = 260;
+      const gap = 8;
+      const left = Math.min(
+        Math.max(trigger.left, 12),
+        window.innerWidth - width - 12
+      );
+      setPosition({ top: trigger.bottom + gap, left });
+    };
+
+    updatePosition();
+    window.addEventListener("resize", updatePosition);
+    window.addEventListener("scroll", updatePosition, true);
+    return () => {
+      window.removeEventListener("resize", updatePosition);
+      window.removeEventListener("scroll", updatePosition, true);
+    };
+  }, [dropdownOpen, triggerRef]);
 
   // Close on outside click (excluding the trigger avatar)
   useEffect(() => {
@@ -39,6 +63,7 @@ const ProfileDropdown = ({
     <div
       ref={dropdownRef}
       className={`profile-dropdown ${dropdownOpen ? "show" : ""}`}
+      style={{ top: `${position.top}px`, left: `${position.left}px` }}
       onClick={(e) => e.stopPropagation()}
     >
       {/* Profile card */}

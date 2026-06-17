@@ -1,7 +1,7 @@
-import React, { useState, useRef } from "react";
+import { useState, useRef } from "react";
 import { Card, Form, Button } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../api";
 
 function ForgotPassword() {
   const navigate = useNavigate();
@@ -42,7 +42,7 @@ function ForgotPassword() {
     setLoading(true);
     setError("");
     try {
-      const { data } = await axios.post("/api/auth/forgot-password", { email });
+      const { data } = await api.post("/api/auth/forgot-password", { email });
       if (data.devOtp) {
         // Email not configured — show OTP directly for dev/demo
         setOtp(data.devOtp.split(""));
@@ -71,7 +71,7 @@ function ForgotPassword() {
     }
     setLoading(true);
     try {
-      await axios.post("/api/auth/reset-password", {
+      await api.post("/api/auth/reset-password", {
         email, otp: otp.join(""), newPassword,
       });
       setSuccess("Password reset! Redirecting to login...");

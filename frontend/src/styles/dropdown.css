@@ -37,8 +37,6 @@
 */
 .profile-dropdown {
   position: fixed;
-  top: 100px;
-  left: 24px;
   width: 260px;
   z-index: 99999;
   background: var(--bg-card);
