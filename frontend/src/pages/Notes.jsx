@@ -16,16 +16,71 @@ const TEXT_COLORS = [
 ];
 
 const TEXT_SIZES = [
-  { label: "Small", v: "0.9rem" },
-  { label: "Normal", v: "1rem" },
-  { label: "Large", v: "1.2rem" },
-  { label: "Huge", v: "1.45rem" },
+  8, 10, 12, 14, 16, 18, 20, 24, 28, 32, 40, 48,
 ];
 
 const TEXT_STYLES = [
-  { label: "Sans", v: "inherit" },
-  { label: "Serif", v: "Georgia, serif" },
-  { label: "Mono", v: "'SFMono-Regular', Consolas, monospace" },
+  {
+    label: "Normal Text",
+    style: {
+      fontSize: "16px",
+      fontWeight: "400",
+      fontStyle: "normal",
+      textDecoration: "none",
+      color: "inherit",
+      backgroundColor: "transparent",
+      fontFamily: "inherit",
+      lineHeight: "1.8",
+    },
+  },
+  {
+    label: "Title",
+    style: {
+      fontSize: "32px",
+      fontWeight: "700",
+      lineHeight: "1.25",
+      color: "var(--text-primary)",
+    },
+  },
+  {
+    label: "Subtitle",
+    style: {
+      fontSize: "22px",
+      fontWeight: "600",
+      lineHeight: "1.35",
+      color: "var(--text-secondary)",
+    },
+  },
+  {
+    label: "Quote",
+    style: {
+      fontStyle: "italic",
+      color: "var(--text-secondary)",
+      borderLeft: "3px solid var(--blue)",
+      paddingLeft: "10px",
+    },
+  },
+  {
+    label: "Highlighted Text",
+    style: {
+      color: "#0d1117",
+      backgroundColor: "#e3b341",
+      borderRadius: "4px",
+      padding: "1px 4px",
+    },
+  },
+  {
+    label: "Code Block",
+    style: {
+      fontFamily: "'SFMono-Regular', Consolas, monospace",
+      fontSize: "14px",
+      backgroundColor: "var(--bg-input)",
+      border: "1px solid var(--border)",
+      borderRadius: "6px",
+      padding: "2px 6px",
+      whiteSpace: "pre-wrap",
+    },
+  },
 ];
 
 const stripHtml = (h) => h.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
@@ -106,10 +161,12 @@ export default function Notes() {
 
   // Restore the saved selection back into the editor.
   const restoreRange = useCallback(() => {
-    if (!savedRange.current) return;
+    if (!savedRange.current || !editorRef.current) return false;
+    if (!editorRef.current.contains(savedRange.current.commonAncestorContainer)) return false;
     const sel = window.getSelection();
     sel?.removeAllRanges();
     sel?.addRange(savedRange.current);
+    return true;
   }, []);
 
   // ── Save ─────────────────────────────────────────────────────────────────
@@ -177,10 +234,8 @@ export default function Notes() {
   //   2. NEVER call editorRef.current.focus() inside run() or any toolbar handler
   //      → calling focus() on a contentEditable collapses the selection in Chrome/Edge.
   //
-  const run = useCallback((cmd, value = null, requiresSelection = false) => {
-    restoreRange();
-    const sel = window.getSelection();
-    if (requiresSelection && (!sel || sel.rangeCount === 0 || sel.isCollapsed)) return;
+  const run = useCallback((cmd, value = null) => {
+    if (!restoreRange()) return;
     document.execCommand("styleWithCSS", false, true);
     document.execCommand(cmd, false, value);
     saveRange();
@@ -188,7 +243,7 @@ export default function Notes() {
   }, [restoreRange, saveRange, scheduleSave]);
 
   const applyInlineStyle = useCallback((style) => {
-    restoreRange();
+    if (!restoreRange()) return;
     const sel = window.getSelection();
     if (!sel || sel.rangeCount === 0 || sel.isCollapsed || !editorRef.current) return;
 
@@ -205,8 +260,14 @@ export default function Notes() {
     sel.removeAllRanges();
     sel.addRange(nextRange);
     savedRange.current = nextRange.cloneRange();
-    scheduleSave();
-  }, [restoreRange, scheduleSave]);
+    clearTimeout(saveTimer.current);
+    saveNow();
+  }, [restoreRange, saveNow]);
+
+  const applyTextFormat = useCallback((style) => {
+    applyInlineStyle(style);
+    saveRange();
+  }, [applyInlineStyle, saveRange]);
 
   const handleEditorInput = useCallback(() => {
     saveRange();
@@ -300,17 +361,17 @@ export default function Notes() {
             <div className="notes-toolbar">
 
               {/* Bold */}
-              <button className="tb-btn" title="Bold" onMouseDown={e => { e.preventDefault(); run("bold", null, true); }}>
+              <button className="tb-btn" title="Bold" onMouseDown={e => { e.preventDefault(); applyTextFormat({ fontWeight: "700" }); }}>
                 <strong>B</strong>
               </button>
 
               {/* Italic */}
-              <button className="tb-btn tb-italic" title="Italic" onMouseDown={e => { e.preventDefault(); run("italic", null, true); }}>
+              <button className="tb-btn tb-italic" title="Italic" onMouseDown={e => { e.preventDefault(); applyTextFormat({ fontStyle: "italic" }); }}>
                 <em>I</em>
               </button>
 
               {/* Underline */}
-              <button className="tb-btn tb-underline" title="Underline" onMouseDown={e => { e.preventDefault(); run("underline", null, true); }}>
+              <button className="tb-btn tb-underline" title="Underline" onMouseDown={e => { e.preventDefault(); applyTextFormat({ textDecoration: "underline" }); }}>
                 <span style={{ textDecoration: "underline" }}>U</span>
               </button>
 
@@ -343,13 +404,13 @@ export default function Notes() {
                 {sizeOpen && (
                   <div className="tb-menu-popup" onMouseDown={e => e.preventDefault()}>
                     {TEXT_SIZES.map(size => (
-                      <button key={size.v} className="tb-menu-item"
+                      <button key={size} className="tb-menu-item"
                         onMouseDown={e => {
                           e.preventDefault();
-                          applyInlineStyle({ fontSize: size.v });
+                          applyTextFormat({ fontSize: `${size}px` });
                           setSizeOpen(false);
                         }}>
-                        {size.label}
+                        {size}
                       </button>
                     ))}
                   </div>
@@ -370,15 +431,14 @@ export default function Notes() {
                 </button>
                 {styleOpen && (
                   <div className="tb-menu-popup" onMouseDown={e => e.preventDefault()}>
-                    {TEXT_STYLES.map(style => (
-                      <button key={style.v} className="tb-menu-item"
-                        style={{ fontFamily: style.v }}
+                    {TEXT_STYLES.map(textStyle => (
+                      <button key={textStyle.label} className="tb-menu-item"
                         onMouseDown={e => {
                           e.preventDefault();
-                          applyInlineStyle({ fontFamily: style.v });
+                          applyTextFormat(textStyle.style);
                           setStyleOpen(false);
                         }}>
-                        {style.label}
+                        {textStyle.label}
                       </button>
                     ))}
                   </div>
@@ -407,7 +467,7 @@ export default function Notes() {
                         style={{ background: c.v }}
                         onMouseDown={e => {
                           e.preventDefault();
-                          applyInlineStyle({ color: c.v });
+                          applyTextFormat({ color: c.v });
                           setColorOpen(false);
                         }}
                       />
