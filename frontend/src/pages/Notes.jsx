@@ -21,7 +21,7 @@ const TEXT_SIZES = [
 
 const TEXT_STYLES = [
   {
-    label: "Normal Text",
+    label: "Normal",
     style: {
       fontSize: "16px",
       fontWeight: "400",
@@ -61,16 +61,7 @@ const TEXT_STYLES = [
     },
   },
   {
-    label: "Highlighted Text",
-    style: {
-      color: "#0d1117",
-      backgroundColor: "#e3b341",
-      borderRadius: "4px",
-      padding: "1px 4px",
-    },
-  },
-  {
-    label: "Code Block",
+    label: "Code",
     style: {
       fontFamily: "'SFMono-Regular', Consolas, monospace",
       fontSize: "14px",
@@ -150,24 +141,42 @@ export default function Notes() {
   }, [colorOpen, sizeOpen, styleOpen]);
 
   // ── Selection helpers ────────────────────────────────────────────────────
-  // Save the current selection. Called on editor blur and before opening color picker.
-  const saveRange = useCallback(() => {
+  const getEditorRange = useCallback(() => {
     const sel = window.getSelection();
-    if (!sel || sel.rangeCount === 0 || !editorRef.current) return;
+    if (!sel || sel.rangeCount === 0 || !editorRef.current) return null;
     const range = sel.getRangeAt(0);
-    if (!editorRef.current.contains(range.commonAncestorContainer)) return;
-    savedRange.current = range.cloneRange();
+    if (!editorRef.current.contains(range.commonAncestorContainer)) return null;
+    return range;
   }, []);
 
-  // Restore the saved selection back into the editor.
+  const saveRange = useCallback(() => {
+    const range = getEditorRange();
+    if (range) savedRange.current = range.cloneRange();
+  }, [getEditorRange]);
+
   const restoreRange = useCallback(() => {
-    if (!savedRange.current || !editorRef.current) return false;
-    if (!editorRef.current.contains(savedRange.current.commonAncestorContainer)) return false;
+    if (!savedRange.current || !editorRef.current) return null;
+    if (!editorRef.current.contains(savedRange.current.commonAncestorContainer)) return null;
     const sel = window.getSelection();
     sel?.removeAllRanges();
     sel?.addRange(savedRange.current);
-    return true;
+    return savedRange.current;
   }, []);
+
+  const getFormattingRange = useCallback(() => {
+    const liveRange = getEditorRange();
+    if (liveRange) {
+      savedRange.current = liveRange.cloneRange();
+      return liveRange;
+    }
+    return restoreRange();
+  }, [getEditorRange, restoreRange]);
+
+  useEffect(() => {
+    const handler = () => saveRange();
+    document.addEventListener("selectionchange", handler);
+    return () => document.removeEventListener("selectionchange", handler);
+  }, [saveRange]);
 
   // ── Save ─────────────────────────────────────────────────────────────────
   const saveNow = useCallback(async () => {
@@ -234,21 +243,24 @@ export default function Notes() {
   //   2. NEVER call editorRef.current.focus() inside run() or any toolbar handler
   //      → calling focus() on a contentEditable collapses the selection in Chrome/Edge.
   //
+  const saveAfterFormat = useCallback(() => {
+    clearTimeout(saveTimer.current);
+    saveNow();
+  }, [saveNow]);
+
   const run = useCallback((cmd, value = null) => {
-    if (!restoreRange()) return;
+    const range = getFormattingRange();
+    if (!range || range.collapsed) return;
     document.execCommand("styleWithCSS", false, true);
     document.execCommand(cmd, false, value);
     saveRange();
-    scheduleSave();
-  }, [restoreRange, saveRange, scheduleSave]);
+    saveAfterFormat();
+  }, [getFormattingRange, saveAfterFormat, saveRange]);
 
-  const applyInlineStyle = useCallback((style) => {
-    if (!restoreRange()) return;
+  const applySpanStyle = useCallback((style) => {
+    const range = getFormattingRange();
     const sel = window.getSelection();
-    if (!sel || sel.rangeCount === 0 || sel.isCollapsed || !editorRef.current) return;
-
-    const range = sel.getRangeAt(0);
-    if (!editorRef.current.contains(range.commonAncestorContainer)) return;
+    if (!range || range.collapsed || !sel || !editorRef.current) return;
 
     const span = document.createElement("span");
     Object.assign(span.style, style);
@@ -260,14 +272,13 @@ export default function Notes() {
     sel.removeAllRanges();
     sel.addRange(nextRange);
     savedRange.current = nextRange.cloneRange();
-    clearTimeout(saveTimer.current);
-    saveNow();
-  }, [restoreRange, saveNow]);
+    saveAfterFormat();
+  }, [getFormattingRange, saveAfterFormat]);
 
-  const applyTextFormat = useCallback((style) => {
-    applyInlineStyle(style);
+  const applyCssFormat = useCallback((style) => {
+    applySpanStyle(style);
     saveRange();
-  }, [applyInlineStyle, saveRange]);
+  }, [applySpanStyle, saveRange]);
 
   const handleEditorInput = useCallback(() => {
     saveRange();
@@ -361,17 +372,17 @@ export default function Notes() {
             <div className="notes-toolbar">
 
               {/* Bold */}
-              <button className="tb-btn" title="Bold" onMouseDown={e => { e.preventDefault(); applyTextFormat({ fontWeight: "700" }); }}>
+              <button className="tb-btn" title="Bold" onMouseDown={e => { e.preventDefault(); run("bold"); }}>
                 <strong>B</strong>
               </button>
 
               {/* Italic */}
-              <button className="tb-btn tb-italic" title="Italic" onMouseDown={e => { e.preventDefault(); applyTextFormat({ fontStyle: "italic" }); }}>
+              <button className="tb-btn tb-italic" title="Italic" onMouseDown={e => { e.preventDefault(); run("italic"); }}>
                 <em>I</em>
               </button>
 
               {/* Underline */}
-              <button className="tb-btn tb-underline" title="Underline" onMouseDown={e => { e.preventDefault(); applyTextFormat({ textDecoration: "underline" }); }}>
+              <button className="tb-btn tb-underline" title="Underline" onMouseDown={e => { e.preventDefault(); run("underline"); }}>
                 <span style={{ textDecoration: "underline" }}>U</span>
               </button>
 
@@ -407,7 +418,7 @@ export default function Notes() {
                       <button key={size} className="tb-menu-item"
                         onMouseDown={e => {
                           e.preventDefault();
-                          applyTextFormat({ fontSize: `${size}px` });
+                          applyCssFormat({ fontSize: `${size}px` });
                           setSizeOpen(false);
                         }}>
                         {size}
@@ -435,7 +446,7 @@ export default function Notes() {
                       <button key={textStyle.label} className="tb-menu-item"
                         onMouseDown={e => {
                           e.preventDefault();
-                          applyTextFormat(textStyle.style);
+                          applyCssFormat(textStyle.style);
                           setStyleOpen(false);
                         }}>
                         {textStyle.label}
@@ -467,7 +478,7 @@ export default function Notes() {
                         style={{ background: c.v }}
                         onMouseDown={e => {
                           e.preventDefault();
-                          applyTextFormat({ color: c.v });
+                          run("foreColor", c.v);
                           setColorOpen(false);
                         }}
                       />
