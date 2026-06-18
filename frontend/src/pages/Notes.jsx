@@ -260,10 +260,26 @@ export default function Notes() {
   const applySpanStyle = useCallback((style) => {
     const range = getFormattingRange();
     const sel = window.getSelection();
-    if (!range || range.collapsed || !sel || !editorRef.current) return;
+    if (!range || !sel || !editorRef.current) return;
 
     const span = document.createElement("span");
     Object.assign(span.style, style);
+
+    if (range.collapsed) {
+      const marker = document.createTextNode("\u200b");
+      span.appendChild(marker);
+      range.insertNode(span);
+
+      const nextRange = document.createRange();
+      nextRange.setStart(marker, marker.length);
+      nextRange.collapse(true);
+      sel.removeAllRanges();
+      sel.addRange(nextRange);
+      savedRange.current = nextRange.cloneRange();
+      saveRange();
+      return;
+    }
+
     span.appendChild(range.extractContents());
     range.insertNode(span);
 
