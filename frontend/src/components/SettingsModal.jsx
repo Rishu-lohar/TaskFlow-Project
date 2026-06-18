@@ -200,6 +200,13 @@ const SettingsModal = ({ settingsOpen, setSettingsOpen, userInfo, onTasksCleared
                   : <><i className="bi bi-check-lg me-2" />Update Password</>
                 }
               </Button>
+              <button
+                type="button"
+                className="settings-link-btn"
+                onClick={() => { window.location.href = "/forgot-password"; }}
+              >
+                <i className="bi bi-envelope me-2" />Forgot current password? Send an email code
+              </button>
             </Form>
           </div>
         )}

@@ -1,13 +1,31 @@
 import nodemailer from "nodemailer";
 
-const getTransporter = () =>
-  nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
+const getRequiredEnv = (name) => {
+  const value = process.env[name];
+  if (!value) throw new Error(`Missing ${name} in backend .env`);
+  return value;
+};
+
+const getTransporter = () => {
+  const user = getRequiredEnv("EMAIL_USER");
+  const pass = getRequiredEnv("EMAIL_PASS");
+
+  if (process.env.SMTP_HOST) {
+    return nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: Number(process.env.SMTP_PORT || 587),
+      secure: process.env.SMTP_SECURE === "true",
+      auth: { user, pass },
+    });
+  }
+
+  return nodemailer.createTransport({
+    service: process.env.EMAIL_SERVICE || "gmail",
+    auth: { user, pass },
   });
+};
+
+const getFromAddress = () => `"TaskFlow" <${getRequiredEnv("EMAIL_USER")}>`;
 
 const baseStyles = `
   font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
@@ -18,7 +36,7 @@ const baseStyles = `
 
 export const sendVerificationEmail = async (email, name, otp) => {
   await getTransporter().sendMail({
-    from: `"TaskFlow" <${process.env.EMAIL_USER}>`,
+    from: getFromAddress(),
     to: email,
     subject: "Verify your TaskFlow account",
     html: `
@@ -40,7 +58,7 @@ export const sendVerificationEmail = async (email, name, otp) => {
 
 export const sendPasswordResetEmail = async (email, name, otp) => {
   await getTransporter().sendMail({
-    from: `"TaskFlow" <${process.env.EMAIL_USER}>`,
+    from: getFromAddress(),
     to: email,
     subject: "Reset your TaskFlow password",
     html: `
@@ -78,7 +96,7 @@ export const sendDeadlineReminderEmail = async (email, name, tasks) => {
   }).join("");
 
   await getTransporter().sendMail({
-    from: `"TaskFlow" <${process.env.EMAIL_USER}>`,
+    from: getFromAddress(),
     to: email,
     subject: `⏰ ${tasks.length} task${tasks.length > 1 ? "s" : ""} need your attention — TaskFlow`,
     html: `

@@ -277,6 +277,22 @@
   cursor: not-allowed;
 }
 
+.settings-link-btn {
+  width: 100%;
+  margin-top: 12px;
+  background: transparent;
+  border: none;
+  color: var(--blue);
+  font-size: 0.84rem;
+  font-weight: 600;
+  padding: 8px;
+  cursor: pointer;
+}
+
+.settings-link-btn:hover {
+  color: #79c0ff;
+}
+
 /* ── Mobile ── */
 @media (max-width: 480px) {
   .settings-modal {

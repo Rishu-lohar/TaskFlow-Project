@@ -46,7 +46,7 @@ function ForgotPassword() {
       if (data.devOtp) {
         // Email not configured — show OTP directly for dev/demo
         setOtp(data.devOtp.split(""));
-        setSuccess("Email not configured. OTP pre-filled for demo.");
+        setSuccess("Email is not configured on the server, so the reset code was filled in here for development.");
       } else {
         setSuccess("Reset code sent! Check your email.");
       }
